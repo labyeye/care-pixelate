@@ -1,0 +1,380 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 213 60% 97%;
+    --foreground: 0 0% 4%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 4%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 4%;
+
+    --primary: 213 96% 37%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 26 95% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 213 30% 92%;
+    --muted-foreground: 0 0% 38%;
+
+    --accent: 26 95% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --success: 142 72% 42%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 4%;
+
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 4%;
+    --input: 0 0% 4%;
+    --ring: 213 96% 37%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 4%;
+    --sidebar-primary: 213 96% 37%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 213 60% 95%;
+    --sidebar-accent-foreground: 0 0% 4%;
+    --sidebar-border: 0 0% 4%;
+    --sidebar-ring: 213 96% 37%;
+
+    --chart-1: 213 96% 37%;
+    --chart-2: 26 95% 55%;
+    --chart-3: 142 72% 42%;
+    --chart-4: 0 84% 55%;
+    --chart-5: 270 75% 60%;
+
+    /* Healthcare-specific calm accent, kept consistent with .nb-tag-teal below */
+    --teal: 173 80% 32%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family:
+      "Inter",
+      system-ui,
+      -apple-system,
+      sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer base {
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #024bab !important;
+    background-color: #f0f6ff !important;
+    box-shadow: 3px 3px 0px #024bab !important;
+  }
+}
+
+@layer utilities {
+  .nb-shadow {
+    box-shadow: 4px 4px 0px #0a0a0a;
+  }
+  .nb-shadow-sm {
+    box-shadow: 2px 2px 0px #0a0a0a;
+  }
+  .nb-shadow-lg {
+    box-shadow: 6px 6px 0px #0a0a0a;
+  }
+  .nb-shadow-blue {
+    box-shadow: 4px 4px 0px #024bab;
+  }
+  .nb-shadow-orange {
+    box-shadow: 4px 4px 0px #fa731c;
+  }
+
+  .nb-card {
+    @apply bg-white border-2 border-black rounded-lg overflow-hidden;
+    box-shadow: 4px 4px 0px #0a0a0a;
+  }
+  .nb-card-hover {
+    @apply transition-all duration-150;
+  }
+  .nb-card-hover:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #0a0a0a;
+  }
+
+  .nb-btn {
+    @apply border-2 border-black rounded-lg font-bold transition-all duration-100;
+    box-shadow: 3px 3px 0px #0a0a0a;
+  }
+  .nb-btn:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px #0a0a0a;
+  }
+  .nb-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px #0a0a0a;
+  }
+
+  .nb-input {
+    @apply border-2 border-black bg-white font-medium rounded-lg;
+    box-shadow: 2px 2px 0px #0a0a0a;
+  }
+  .nb-input:focus {
+    outline: none;
+    box-shadow: 3px 3px 0px #024bab;
+  }
+
+  .nb-badge {
+    @apply border-2 border-black rounded-full font-bold text-xs px-2 py-0.5;
+  }
+
+  /* Staggered entrance for rows / cards: style={{ animationDelay: `${i * 40}ms` }} */
+  .nb-stagger {
+    animation: fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  tr.nb-stagger:nth-child(2) { animation-delay: 40ms; }
+  tr.nb-stagger:nth-child(3) { animation-delay: 80ms; }
+  tr.nb-stagger:nth-child(4) { animation-delay: 120ms; }
+  tr.nb-stagger:nth-child(5) { animation-delay: 160ms; }
+  tr.nb-stagger:nth-child(n + 6) { animation-delay: 200ms; }
+
+  .nb-tag-blue {
+    @apply bg-[#024BAB] text-white;
+  }
+  .nb-tag-orange {
+    @apply bg-[#FA731C] text-white;
+  }
+  .nb-tag-green {
+    @apply bg-[#00C48C] text-black;
+  }
+  .nb-tag-red {
+    @apply bg-[#EF4444] text-white;
+  }
+  .nb-tag-purple {
+    @apply bg-[#A855F7] text-white;
+  }
+  .nb-tag-white {
+    @apply bg-white text-black;
+  }
+  .nb-tag-teal {
+    @apply bg-[#0D9488] text-white;
+  }
+  .nb-tag-lime {
+    @apply bg-[#A3E635] text-black;
+  }
+  .nb-tag-pink {
+    @apply bg-[#FF3366] text-white;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Neo-brutalism skin (same idea as NestLeads)
+   Every black-bordered `border-2` element — inputs, selects, buttons,
+   dialogs, tabs, icon chips — gets rounded corners and a hard offset
+   shadow; buttons/links also get the lift-on-hover / press-on-active
+   motion. :where() keeps specificity at zero so any explicit rounded-* /
+   shadow-* utility still wins. Add `no-nb` to opt an element out.
+------------------------------------------------------------------- */
+@layer components {
+  :where(.border-2.border-black:not(.no-nb, .animate-spin, .w-2, .w-3, .w-4, .w-5, .w-6, table, tr, td, th)) {
+    border-radius: 8px;
+    box-shadow: 3px 3px 0px #0a0a0a;
+  }
+
+  /* wrapper that holds a borderless input + button (e.g. password field) */
+  :where(.border-2.border-black:not(.no-nb) > :is(input, button):first-child) {
+    border-top-left-radius: inherit;
+    border-bottom-left-radius: inherit;
+  }
+  :where(.border-2.border-black:not(.no-nb) > :is(input, button):last-child) {
+    border-top-right-radius: inherit;
+    border-bottom-right-radius: inherit;
+  }
+
+  :where(
+    :is(button, a, label).border-2.border-black:not(.no-nb),
+    button.border-2:not(.no-nb, [class*="border-transparent"], [class*="border-t-"])
+  ) {
+    transition:
+      transform 120ms ease,
+      box-shadow 120ms ease,
+      background-color 120ms ease;
+  }
+  :where(:is(button, a).border-2.border-black:not(.no-nb, :disabled)):hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px #0a0a0a;
+  }
+  :where(:is(button, a).border-2.border-black:not(.no-nb, :disabled)):active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0px #0a0a0a;
+  }
+  :where(button.border-2.border-black:disabled) {
+    box-shadow: none;
+  }
+
+  select,
+  textarea {
+    border-radius: 8px;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Status pills — any small bordered label (ACTIVE, PENDING, ON LEAVE …)
+   becomes a pill with a black border and hard offset shadow, uppercase.
+   Background / text colours stay as set by the badge itself.
+   (Copied from NestHR so both products render status labels identically.)
+------------------------------------------------------------------- */
+span[class*="border-2"]:is(
+    [class*="text-[9px]"],
+    [class*="text-[10px]"],
+    [class*="text-[11px]"],
+    [class*="text-xs"]
+  ):is([class*="px-1.5"], [class*="px-2"]):is(
+    [class*="py-0.5"],
+    [class*="py-1"]
+  ):not([class*="bg-black/"], .no-nb) {
+  border-color: #0a0a0a;
+  border-radius: 9999px;
+  box-shadow: 3px 3px 0px #0a0a0a;
+  margin-right: 3px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+/* Printing a page that lives inside the app shell (prescriptions, reports): drop the sidebar + header. */
+@media print {
+  .app-shell > *:not(:last-child),
+  .app-shell header {
+    display: none !important;
+  }
+  .app-shell main {
+    padding: 0 !important;
+  }
+}
+
+
+/* ------------------------------------------------------------------
+   Motion
+   Everything that appears on a page rises in with a short stagger; interactive
+   tiles lift on hover; numbers count up (AnimatedValue); modals zoom in.
+   `backwards` fill-mode (not `both`) so the final transform is released and
+   hover/active transforms keep working once the entrance has played.
+------------------------------------------------------------------- */
+@keyframes nb-rise {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes nb-pop {
+  0% { transform: scale(0.5) rotate(-8deg); opacity: 0; }
+  70% { transform: scale(1.12) rotate(2deg); opacity: 1; }
+  100% { transform: none; }
+}
+@keyframes nb-slide-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes nb-modal {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes nb-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.nb-rise,
+main :is(.grid, .space-y-3, .space-y-4, .space-y-6) > :is(.border-2, .nb-card, .nb-lift),
+main .grid > a > .border-2 {
+  animation: nb-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+/* sibling index -> stagger step (capped at 12 so long grids don't crawl) */
+:nth-child(2) { --i: 1; }
+:nth-child(3) { --i: 2; }
+:nth-child(4) { --i: 3; }
+:nth-child(5) { --i: 4; }
+:nth-child(6) { --i: 5; }
+:nth-child(7) { --i: 6; }
+:nth-child(8) { --i: 7; }
+:nth-child(9) { --i: 8; }
+:nth-child(10) { --i: 9; }
+:nth-child(11) { --i: 10; }
+:nth-child(n + 12) { --i: 11; }
+
+/* list rows inside dashboard panels: .nb-list > * */
+.nb-list > * {
+  animation: nb-slide-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(120ms + var(--i, 0) * 50ms);
+}
+
+/* the icon chip on every stat tile pops in just after its card */
+.nb-chip {
+  animation: nb-pop 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(180ms + var(--i, 0) * 60ms);
+}
+
+/* tiles that react to the pointer */
+.nb-lift {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.nb-lift:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 0 #0a0a0a;
+}
+.nb-lift:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 0 #0a0a0a;
+}
+.nb-lift:hover .nb-chip-hover {
+  transform: scale(1.1) rotate(-4deg);
+}
+.nb-chip-hover {
+  transition: transform 200ms ease;
+}
+
+/* table: header settles in, rows already stagger (nb-stagger), hover nudges the row */
+thead tr { animation: nb-fade 0.4s ease backwards; }
+tbody tr { transition: background-color 120ms ease, box-shadow 120ms ease; }
+tbody tr:hover { box-shadow: inset 4px 0 0 0 #024bab; }
+
+/* modals (the multi-step form shell) */
+.nb-modal { animation: nb-modal 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.nb-backdrop { animation: nb-fade 0.2s ease backwards; }
+
+/* status badges pop when they first appear */
+.nb-badge { animation: nb-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-rise, .nb-list > *, .nb-chip, .nb-modal, .nb-backdrop, .nb-badge, .nb-stagger, thead tr,
+  main :is(.grid, .space-y-3, .space-y-4, .space-y-6) > :is(.border-2, .nb-card, .nb-lift),
+  main .grid > a > .border-2 {
+    animation: none !important;
+  }
+  .nb-lift, .nb-lift:hover, .nb-lift:active { transition: none; transform: none; }
+}
