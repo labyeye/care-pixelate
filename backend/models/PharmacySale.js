@@ -2,7 +2,11 @@ const mongoose = require("mongoose");
 
 const allocationSchema = new mongoose.Schema(
   {
-    medicineBatchId: { type: mongoose.Schema.Types.ObjectId, ref: "MedicineBatch", required: true },
+    medicineBatchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "MedicineBatch",
+      required: true,
+    },
     batchNumber: { type: String, default: "" },
     expiryDate: { type: Date },
     quantity: { type: Number, required: true, min: 1 },
@@ -14,7 +18,11 @@ const allocationSchema = new mongoose.Schema(
 
 const lineSchema = new mongoose.Schema(
   {
-    medicineId: { type: mongoose.Schema.Types.ObjectId, ref: "Medicine", required: true },
+    medicineId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Medicine",
+      required: true,
+    },
     medicineName: { type: String, required: true },
     strength: { type: String, default: "" },
     dosageForm: { type: String, default: "" },
@@ -45,7 +53,11 @@ const returnSchema = new mongoose.Schema(
 const paymentSchema = new mongoose.Schema(
   {
     amount: { type: Number, required: true, min: 0.01 },
-    mode: { type: String, enum: ["cash", "upi", "card", "bank", "insurance", "other"], required: true },
+    mode: {
+      type: String,
+      enum: ["cash", "upi", "card", "bank", "insurance", "other"],
+      required: true,
+    },
     reference: { type: String, default: "" },
     receivedAt: { type: Date, default: Date.now },
   },
@@ -55,11 +67,27 @@ const paymentSchema = new mongoose.Schema(
 // Counter sale / dispensing. Prescribing (Consultation) and dispensing (this) stay separate workflows.
 const pharmacySaleSchema = new mongoose.Schema(
   {
-    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "Tenant", required: true },
-    clinicId: { type: mongoose.Schema.Types.ObjectId, ref: "Clinic", default: null },
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tenant",
+      required: true,
+    },
+    clinicId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Clinic",
+      default: null,
+    },
     number: { type: String, required: true },
-    patientId: { type: mongoose.Schema.Types.ObjectId, ref: "Patient", default: null }, // null = counter sale
-    consultationId: { type: mongoose.Schema.Types.ObjectId, ref: "Consultation", default: null },
+    patientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Patient",
+      default: null,
+    }, // null = counter sale
+    consultationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Consultation",
+      default: null,
+    },
     customerName: { type: String, default: "", maxlength: 120 }, // for counter sales without a patient
     items: { type: [lineSchema], required: true },
     subtotal: { type: Number, default: 0 },
@@ -67,15 +95,27 @@ const pharmacySaleSchema = new mongoose.Schema(
     discount: { type: Number, default: 0 },
     total: { type: Number, default: 0 },
     // Patient sales are billed on the invoice (payments live there); counter sales carry payments here.
-    invoiceId: { type: mongoose.Schema.Types.ObjectId, ref: "Invoice", default: null },
+    invoiceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Invoice",
+      default: null,
+    },
     payments: { type: [paymentSchema], default: [] },
     returns: { type: [returnSchema], default: [] },
-    status: { type: String, enum: ["completed", "partially_returned", "returned", "cancelled"], default: "completed" },
+    status: {
+      type: String,
+      enum: ["completed", "partially_returned", "returned", "cancelled"],
+      default: "completed",
+    },
     cancelReason: { type: String, default: "" },
     idempotencyKey: { type: String, required: true },
     returnSeq: { type: Number, default: 0 }, // optimistic-lock counter so two returns can never both pass
     notes: { type: String, default: "", maxlength: 500 },
-    dispensedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    dispensedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   { timestamps: true },
 );

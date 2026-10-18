@@ -2,15 +2,30 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
-  addDays, addMonths, addWeeks, eachDayOfInterval, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, isToday,
-  startOfMonth, startOfWeek,
+  addDays,
+  addMonths,
+  addWeeks,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isSameDay,
+  isSameMonth,
+  isToday,
+  startOfMonth,
+  startOfWeek,
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { appointmentsAPI, doctorsAPI } from "@/services/api";
@@ -29,21 +44,38 @@ const STATUS_STYLE: Record<Appointment["status"], string> = {
   no_show: "bg-[#EF4444] text-white",
 };
 
-const patientName = (a: Appointment) => (typeof a.patientId === "object" ? (a.patientId as Patient).name : "Patient");
-const doctorName = (a: Appointment) => (typeof a.doctorId === "object" ? (a.doctorId as Doctor).name : "Doctor");
-const doctorKey = (a: Appointment) => (typeof a.doctorId === "object" ? (a.doctorId as Doctor)._id : a.doctorId);
-const hourOf = (a: Appointment) => Math.min(21, Math.max(7, new Date(a.scheduledAt).getHours()));
+const patientName = (a: Appointment) =>
+  typeof a.patientId === "object" ? (a.patientId as Patient).name : "Patient";
+const doctorName = (a: Appointment) =>
+  typeof a.doctorId === "object" ? (a.doctorId as Doctor).name : "Doctor";
+const doctorKey = (a: Appointment) =>
+  typeof a.doctorId === "object" ? (a.doctorId as Doctor)._id : a.doctorId;
+const hourOf = (a: Appointment) =>
+  Math.min(21, Math.max(7, new Date(a.scheduledAt).getHours()));
 
-function Chip({ a, onOpen, showDoctor = true }: { a: Appointment; onOpen: (a: Appointment) => void; showDoctor?: boolean }) {
+function Chip({
+  a,
+  onOpen,
+  showDoctor = true,
+}: {
+  a: Appointment;
+  onOpen: (a: Appointment) => void;
+  showDoctor?: boolean;
+}) {
   return (
     <button
       type="button"
       onClick={() => onOpen(a)}
       title={`${format(new Date(a.scheduledAt), "p")} · ${patientName(a)} · ${doctorName(a)}`}
-      className={cn("w-full truncate border border-black px-1.5 py-0.5 text-left text-[11px] font-bold leading-tight", STATUS_STYLE[a.status])}
+      className={cn(
+        "w-full truncate border border-black px-1.5 py-0.5 text-left text-[11px] font-bold leading-tight",
+        STATUS_STYLE[a.status],
+      )}
     >
       {format(new Date(a.scheduledAt), "HH:mm")} {patientName(a)}
-      {showDoctor && <span className="font-medium opacity-80"> · {doctorName(a)}</span>}
+      {showDoctor && (
+        <span className="font-medium opacity-80"> · {doctorName(a)}</span>
+      )}
     </button>
   );
 }
@@ -56,15 +88,29 @@ export default function CalendarPage() {
 
   const { from, to, days } = useMemo(() => {
     if (view === "day") return { from: cursor, to: cursor, days: [cursor] };
-    const f = view === "week" ? startOfWeek(cursor, WEEK) : startOfWeek(startOfMonth(cursor), WEEK);
-    const t = view === "week" ? endOfWeek(cursor, WEEK) : endOfWeek(endOfMonth(cursor), WEEK);
+    const f =
+      view === "week"
+        ? startOfWeek(cursor, WEEK)
+        : startOfWeek(startOfMonth(cursor), WEEK);
+    const t =
+      view === "week"
+        ? endOfWeek(cursor, WEEK)
+        : endOfWeek(endOfMonth(cursor), WEEK);
     return { from: f, to: t, days: eachDayOfInterval({ start: f, end: t }) };
   }, [view, cursor]);
 
-  const doctors = useQuery({ queryKey: ["doctors"], queryFn: () => doctorsAPI.getAll() });
+  const doctors = useQuery({
+    queryKey: ["doctors"],
+    queryFn: () => doctorsAPI.getAll(),
+  });
   const appts = useQuery({
     queryKey: ["calendar", ymd(from), ymd(to), doctorId],
-    queryFn: () => appointmentsAPI.range({ from: ymd(from), to: ymd(to), doctorId: doctorId || undefined }),
+    queryFn: () =>
+      appointmentsAPI.range({
+        from: ymd(from),
+        to: ymd(to),
+        doctorId: doctorId || undefined,
+      }),
   });
 
   const byDay = useMemo(() => {
@@ -73,37 +119,70 @@ export default function CalendarPage() {
       const k = ymd(new Date(a.scheduledAt));
       m.set(k, [...(m.get(k) ?? []), a]);
     }
-    for (const list of m.values()) list.sort((x, y) => +new Date(x.scheduledAt) - +new Date(y.scheduledAt));
+    for (const list of m.values())
+      list.sort((x, y) => +new Date(x.scheduledAt) - +new Date(y.scheduledAt));
     return m;
   }, [appts.data]);
 
   const step = (dir: 1 | -1) =>
-    setCursor((c) => (view === "month" ? addMonths(c, dir) : view === "week" ? addWeeks(c, dir) : addDays(c, dir)));
+    setCursor((c) =>
+      view === "month"
+        ? addMonths(c, dir)
+        : view === "week"
+          ? addWeeks(c, dir)
+          : addDays(c, dir),
+    );
 
   const title =
-    view === "month" ? format(cursor, "MMMM yyyy")
-    : view === "week" ? `${format(from, "d MMM")} – ${format(to, "d MMM yyyy")}`
-    : format(cursor, "EEEE, d MMMM yyyy");
+    view === "month"
+      ? format(cursor, "MMMM yyyy")
+      : view === "week"
+        ? `${format(from, "d MMM")} – ${format(to, "d MMM yyyy")}`
+        : format(cursor, "EEEE, d MMMM yyyy");
 
   const total = appts.data?.length ?? 0;
-  const activeDoctors = (doctors.data ?? []).filter((d) => d.accountStatus === "active");
-  const dayColumns = doctorId ? activeDoctors.filter((d) => d._id === doctorId) : activeDoctors;
+  const activeDoctors = (doctors.data ?? []).filter(
+    (d) => d.accountStatus === "active",
+  );
+  const dayColumns = doctorId
+    ? activeDoctors.filter((d) => d._id === doctorId)
+    : activeDoctors;
   const dayList = byDay.get(ymd(cursor)) ?? [];
 
   return (
     <AppLayout title="Calendar">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" aria-label="Previous" onClick={() => step(-1)}>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Previous"
+            onClick={() => step(-1)}
+          >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setCursor(new Date())}>Today</Button>
-          <Button variant="outline" size="icon" aria-label="Next" onClick={() => step(1)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCursor(new Date())}
+          >
+            Today
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Next"
+            onClick={() => step(1)}
+          >
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
         <h2 className="font-display text-xl font-bold">{title}</h2>
-        <span className="text-sm text-muted-foreground">{appts.isLoading ? "Loading…" : `${total} appointment${total === 1 ? "" : "s"}`}</span>
+        <span className="text-sm text-muted-foreground">
+          {appts.isLoading
+            ? "Loading…"
+            : `${total} appointment${total === 1 ? "" : "s"}`}
+        </span>
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <select
@@ -114,7 +193,9 @@ export default function CalendarPage() {
           >
             <option value="">All doctors</option>
             {activeDoctors.map((d) => (
-              <option key={d._id} value={d._id}>{d.name}</option>
+              <option key={d._id} value={d._id}>
+                {d.name}
+              </option>
             ))}
           </select>
           <div className="flex">
@@ -124,7 +205,9 @@ export default function CalendarPage() {
                 onClick={() => setView(v)}
                 className={cn(
                   "no-nb border-2 border-black px-3 py-2 text-xs font-bold uppercase -ml-0.5 first:ml-0",
-                  view === v ? "bg-[#024BAB] text-white" : "bg-white hover:bg-gray-50",
+                  view === v
+                    ? "bg-[#024BAB] text-white"
+                    : "bg-white hover:bg-gray-50",
                 )}
               >
                 {v}
@@ -137,7 +220,12 @@ export default function CalendarPage() {
       <div className="mb-3 flex flex-wrap gap-3 text-xs font-bold">
         {(Object.keys(STATUS_STYLE) as Appointment["status"][]).map((s) => (
           <span key={s} className="flex items-center gap-1.5 capitalize">
-            <span className={cn("inline-block h-3 w-3 border border-black", STATUS_STYLE[s].split(" ")[0])} />
+            <span
+              className={cn(
+                "inline-block h-3 w-3 border border-black",
+                STATUS_STYLE[s].split(" ")[0],
+              )}
+            />
             {s.replace("_", " ")}
           </span>
         ))}
@@ -156,7 +244,10 @@ export default function CalendarPage() {
               <div className="min-w-[760px]">
                 <div className="grid grid-cols-7 border-b-2 border-black bg-[#F8FAFF]">
                   {days.slice(0, 7).map((d) => (
-                    <div key={d.toISOString()} className="px-2 py-2 text-xs font-bold uppercase tracking-wide">
+                    <div
+                      key={d.toISOString()}
+                      className="px-2 py-2 text-xs font-bold uppercase tracking-wide"
+                    >
                       {format(d, "EEE")}
                     </div>
                   ))}
@@ -179,7 +270,8 @@ export default function CalendarPage() {
                           }}
                           className={cn(
                             "no-nb mb-1 flex h-6 min-w-6 items-center justify-center px-1 text-xs font-bold hover:bg-muted",
-                            isToday(d) && "bg-[#FA731C] text-white hover:bg-[#FA731C]",
+                            isToday(d) &&
+                              "bg-[#FA731C] text-white hover:bg-[#FA731C]",
                             !isSameMonth(d, cursor) && "text-muted-foreground",
                           )}
                         >
@@ -219,19 +311,36 @@ export default function CalendarPage() {
                         setCursor(d);
                         setView("day");
                       }}
-                      className={cn("no-nb px-2 py-2 text-left text-xs font-bold hover:bg-muted", isToday(d) && "text-[#FA731C]")}
+                      className={cn(
+                        "no-nb px-2 py-2 text-left text-xs font-bold hover:bg-muted",
+                        isToday(d) && "text-[#FA731C]",
+                      )}
                     >
-                      <span className="uppercase">{format(d, "EEE")}</span> {format(d, "d")}
+                      <span className="uppercase">{format(d, "EEE")}</span>{" "}
+                      {format(d, "d")}
                     </button>
                   ))}
                 </div>
                 {HOURS.map((h) => (
-                  <div key={h} className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-black/10">
-                    <div className="px-2 py-1 text-[11px] font-bold text-muted-foreground">{String(h).padStart(2, "0")}:00</div>
+                  <div
+                    key={h}
+                    className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-black/10"
+                  >
+                    <div className="px-2 py-1 text-[11px] font-bold text-muted-foreground">
+                      {String(h).padStart(2, "0")}:00
+                    </div>
                     {days.map((d) => {
-                      const cell = (byDay.get(ymd(d)) ?? []).filter((a) => hourOf(a) === h);
+                      const cell = (byDay.get(ymd(d)) ?? []).filter(
+                        (a) => hourOf(a) === h,
+                      );
                       return (
-                        <div key={d.toISOString()} className={cn("min-h-[40px] space-y-1 border-l border-black/10 p-1", isSameDay(d, new Date()) && "bg-[#FFF7ED]")}>
+                        <div
+                          key={d.toISOString()}
+                          className={cn(
+                            "min-h-[40px] space-y-1 border-l border-black/10 p-1",
+                            isSameDay(d, new Date()) && "bg-[#FFF7ED]",
+                          )}
+                        >
                           {cell.map((a) => (
                             <Chip key={a._id} a={a} onOpen={setOpen} />
                           ))}
@@ -245,19 +354,30 @@ export default function CalendarPage() {
           ) : (
             <div className="overflow-x-auto">
               {dayList.length === 0 && (
-                <p className="border-b border-black/10 p-4 text-sm text-muted-foreground">No appointments on this day.</p>
+                <p className="border-b border-black/10 p-4 text-sm text-muted-foreground">
+                  No appointments on this day.
+                </p>
               )}
-              <div style={{ minWidth: 80 + Math.max(dayColumns.length, 1) * 180 }}>
+              <div
+                style={{ minWidth: 80 + Math.max(dayColumns.length, 1) * 180 }}
+              >
                 <div
                   className="grid border-b-2 border-black bg-[#F8FAFF]"
-                  style={{ gridTemplateColumns: `64px repeat(${Math.max(dayColumns.length, 1)}, minmax(160px, 1fr))` }}
+                  style={{
+                    gridTemplateColumns: `64px repeat(${Math.max(dayColumns.length, 1)}, minmax(160px, 1fr))`,
+                  }}
                 >
                   <div />
                   {dayColumns.length === 0 ? (
-                    <div className="px-2 py-2 text-xs font-bold text-muted-foreground">No active doctors</div>
+                    <div className="px-2 py-2 text-xs font-bold text-muted-foreground">
+                      No active doctors
+                    </div>
                   ) : (
                     dayColumns.map((d) => (
-                      <div key={d._id} className="truncate px-2 py-2 text-xs font-bold">
+                      <div
+                        key={d._id}
+                        className="truncate px-2 py-2 text-xs font-bold"
+                      >
                         {d.name}
                         <span className="block font-medium text-muted-foreground">
                           {d.professionalDetails?.specializations?.[0] ?? ""}
@@ -270,18 +390,32 @@ export default function CalendarPage() {
                   <div
                     key={h}
                     className="grid border-b border-black/10"
-                    style={{ gridTemplateColumns: `64px repeat(${Math.max(dayColumns.length, 1)}, minmax(160px, 1fr))` }}
+                    style={{
+                      gridTemplateColumns: `64px repeat(${Math.max(dayColumns.length, 1)}, minmax(160px, 1fr))`,
+                    }}
                   >
-                    <div className="px-2 py-1 text-[11px] font-bold text-muted-foreground">{String(h).padStart(2, "0")}:00</div>
+                    <div className="px-2 py-1 text-[11px] font-bold text-muted-foreground">
+                      {String(h).padStart(2, "0")}:00
+                    </div>
                     {dayColumns.length === 0 ? (
                       <div />
                     ) : (
                       dayColumns.map((d) => {
-                        const cell = dayList.filter((a) => doctorKey(a) === d._id && hourOf(a) === h);
+                        const cell = dayList.filter(
+                          (a) => doctorKey(a) === d._id && hourOf(a) === h,
+                        );
                         return (
-                          <div key={d._id} className="min-h-[44px] space-y-1 border-l border-black/10 p-1">
+                          <div
+                            key={d._id}
+                            className="min-h-[44px] space-y-1 border-l border-black/10 p-1"
+                          >
                             {cell.map((a) => (
-                              <Chip key={a._id} a={a} onOpen={setOpen} showDoctor={false} />
+                              <Chip
+                                key={a._id}
+                                a={a}
+                                onOpen={setOpen}
+                                showDoctor={false}
+                              />
                             ))}
                           </div>
                         );
@@ -302,18 +436,38 @@ export default function CalendarPage() {
           </DialogHeader>
           {open && (
             <div className="space-y-2 text-sm">
-              <p><b>When:</b> {format(new Date(open.scheduledAt), "EEEE, d MMM yyyy 'at' p")}</p>
-              <p><b>Patient:</b> {patientName(open)}{typeof open.patientId === "object" && (open.patientId as Patient).patientId ? ` (${(open.patientId as Patient).patientId})` : ""}</p>
-              <p><b>Doctor:</b> {doctorName(open)}</p>
-              <p className="capitalize"><b>Type:</b> {(open.type ?? "in_clinic").replace("_", " ")}{open.tokenNo ? ` · Token ${open.tokenNo}` : ""}</p>
-              {open.reason && <p><b>Reason:</b> {open.reason}</p>}
+              <p>
+                <b>When:</b>{" "}
+                {format(new Date(open.scheduledAt), "EEEE, d MMM yyyy 'at' p")}
+              </p>
+              <p>
+                <b>Patient:</b> {patientName(open)}
+                {typeof open.patientId === "object" &&
+                (open.patientId as Patient).patientId
+                  ? ` (${(open.patientId as Patient).patientId})`
+                  : ""}
+              </p>
+              <p>
+                <b>Doctor:</b> {doctorName(open)}
+              </p>
+              <p className="capitalize">
+                <b>Type:</b> {(open.type ?? "in_clinic").replace("_", " ")}
+                {open.tokenNo ? ` · Token ${open.tokenNo}` : ""}
+              </p>
+              {open.reason && (
+                <p>
+                  <b>Reason:</b> {open.reason}
+                </p>
+              )}
               <p className="flex items-center gap-2">
                 <b>Status:</b>
                 <StatusBadge status={open.status} />
               </p>
               {(open.status === "scheduled" || open.status === "completed") && (
                 <Button asChild className="mt-2">
-                  <Link to={`/consultation/${open._id}`}>Open consultation</Link>
+                  <Link to={`/consultation/${open._id}`}>
+                    Open consultation
+                  </Link>
                 </Button>
               )}
             </div>

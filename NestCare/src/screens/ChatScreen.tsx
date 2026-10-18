@@ -22,10 +22,18 @@ interface Message {
 
 // Mock chat — no messaging backend exists yet; sent messages append locally only.
 const INITIAL: Message[] = [
-  { id: '1', text: 'Hi Doctor, I wanted to follow up on my last visit.', fromMe: true },
+  {
+    id: '1',
+    text: 'Hi Doctor, I wanted to follow up on my last visit.',
+    fromMe: true,
+  },
   { id: '2', text: 'Hello! Sure, how are you feeling now?', fromMe: false },
   { id: '3', text: 'Much better, the fever has gone down.', fromMe: true },
-  { id: '4', text: 'Great, please continue the current dosage for a week.', fromMe: false },
+  {
+    id: '4',
+    text: 'Great, please continue the current dosage for a week.',
+    fromMe: false,
+  },
 ];
 
 export default function ChatScreen({ route, navigation }: any) {
@@ -37,7 +45,10 @@ export default function ChatScreen({ route, navigation }: any) {
 
   const send = () => {
     if (!text.trim()) return;
-    setMessages(prev => [...prev, { id: String(Date.now()), text: text.trim(), fromMe: true }]);
+    setMessages(prev => [
+      ...prev,
+      { id: String(Date.now()), text: text.trim(), fromMe: true },
+    ]);
     setText('');
   };
 
@@ -61,12 +72,29 @@ export default function ChatScreen({ route, navigation }: any) {
                 : { alignSelf: 'flex-start', backgroundColor: colors.surface },
             ]}
           >
-            <Text style={[styles.bubbleText, { color: item.fromMe ? colors.white : colors.text }]}>{item.text}</Text>
+            <Text
+              style={[
+                styles.bubbleText,
+                { color: item.fromMe ? colors.white : colors.text },
+              ]}
+            >
+              {item.text}
+            </Text>
           </View>
         )}
       />
-      <View style={[styles.inputRow, { borderTopColor: colors.border, paddingBottom: insets.bottom + 10 }]}>
-        <View style={[styles.inputBorder, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+      <View
+        style={[
+          styles.inputRow,
+          { borderTopColor: colors.border, paddingBottom: insets.bottom + 10 },
+        ]}
+      >
+        <View
+          style={[
+            styles.inputBorder,
+            { borderColor: colors.border, backgroundColor: colors.surface },
+          ]}
+        >
           <TextInput
             style={[styles.input, { color: colors.text }]}
             placeholder="Type a message"
@@ -76,7 +104,10 @@ export default function ChatScreen({ route, navigation }: any) {
           />
         </View>
         <TouchableOpacity
-          style={[styles.sendBtn, { borderColor: colors.border, backgroundColor: colors.primary }]}
+          style={[
+            styles.sendBtn,
+            { borderColor: colors.border, backgroundColor: colors.primary },
+          ]}
           onPress={send}
         >
           <Send size={18} color={colors.white} />
@@ -89,10 +120,35 @@ export default function ChatScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   wrap: { flex: 1 },
   list: { padding: 16, gap: 10 },
-  bubble: { maxWidth: '78%', borderWidth: 2, borderRadius: 8, padding: 10, marginBottom: 4 },
+  bubble: {
+    maxWidth: '78%',
+    borderWidth: 2,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 4,
+  },
   bubbleText: { fontSize: 13, fontWeight: '600', lineHeight: 18 },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 10, borderTopWidth: 2 },
-  inputBorder: { flex: 1, borderWidth: 2, borderRadius: 8, paddingHorizontal: 12 },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    borderTopWidth: 2,
+  },
+  inputBorder: {
+    flex: 1,
+    borderWidth: 2,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+  },
   input: { height: 44, fontSize: 13, fontWeight: '600' },
-  sendBtn: { width: 44, height: 44, borderWidth: 2, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  sendBtn: {
+    width: 44,
+    height: 44,
+    borderWidth: 2,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

@@ -37,8 +37,10 @@ function validate(f: Form): Partial<Record<keyof Form, string>> {
   if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,128}$/.test(f.password)) {
     e.password = "8+ characters with uppercase, lowercase and a number";
   }
-  if (f.confirmPassword !== f.password) e.confirmPassword = "Passwords do not match";
-  if (!f.acceptTerms) e.acceptTerms = "Please accept the Terms and Privacy Policy";
+  if (f.confirmPassword !== f.password)
+    e.confirmPassword = "Passwords do not match";
+  if (!f.acceptTerms)
+    e.acceptTerms = "Please accept the Terms and Privacy Policy";
   return e;
 }
 
@@ -58,17 +60,27 @@ export default function RegisterTenantPage() {
     confirmPassword: "",
     acceptTerms: false,
   });
-  const [touched, setTouched] = useState<Partial<Record<keyof Form, boolean>>>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof Form, boolean>>>(
+    {},
+  );
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const errors = validate(form);
   // An error shows once the field was touched or a submit was attempted.
-  const err = (k: keyof Form) => (submitted || touched[k] ? errors[k] : undefined);
-  const touch = (k: keyof Form) => () => setTouched((t) => ({ ...t, [k]: true }));
-  const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((p) => ({ ...p, [k]: v }));
+  const err = (k: keyof Form) =>
+    submitted || touched[k] ? errors[k] : undefined;
+  const touch = (k: keyof Form) => () =>
+    setTouched((t) => ({ ...t, [k]: true }));
+  const set = <K extends keyof Form>(k: K, v: Form[K]) =>
+    setForm((p) => ({ ...p, [k]: v }));
 
-  const field = (k: keyof Form, label: string, input: React.ReactNode, wide = false) => (
+  const field = (
+    k: keyof Form,
+    label: string,
+    input: React.ReactNode,
+    wide = false,
+  ) => (
     <div className={`space-y-1.5 ${wide ? "sm:col-span-2" : ""}`}>
       <Label htmlFor={k}>{label}</Label>
       {input}
@@ -113,7 +125,9 @@ export default function RegisterTenantPage() {
       });
       navigate("/onboarding");
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Registration failed");
+      toast.error(
+        error instanceof ApiError ? error.message : "Registration failed",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -122,19 +136,40 @@ export default function RegisterTenantPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F0F6FF] p-6">
       <div className="w-full max-w-xl animate-fade-in">
-        <img src={logoLong} alt="NestCare" className="mb-8 h-12 object-contain" />
+        <img
+          src={logoLong}
+          alt="NestCare"
+          className="mb-8 h-12 object-contain"
+        />
 
-        <h2 className="mb-1 font-display text-3xl font-bold text-black">Create account</h2>
+        <h2 className="mb-1 font-display text-3xl font-bold text-black">
+          Create account
+        </h2>
         <p className="mb-8 text-sm text-muted-foreground">
           Set up your NestCare workspace ·{" "}
-          <Link to="/login" className="font-bold text-black underline hover:text-[#FA731C] transition-colors">
+          <Link
+            to="/login"
+            className="font-bold text-black underline hover:text-[#FA731C] transition-colors"
+          >
             Sign in
           </Link>
         </p>
 
-        <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {text("name", "Full name", { placeholder: "Dr. Jane Doe", autoComplete: "name", autoFocus: true })}
-          {text("email", "Email", { type: "email", placeholder: "you@hospital.com", autoComplete: "email" })}
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+        >
+          {text("name", "Full name", {
+            placeholder: "Dr. Jane Doe",
+            autoComplete: "name",
+            autoFocus: true,
+          })}
+          {text("email", "Email", {
+            type: "email",
+            placeholder: "you@hospital.com",
+            autoComplete: "email",
+          })}
 
           {field(
             "phone",
@@ -143,7 +178,9 @@ export default function RegisterTenantPage() {
               id="phone"
               country={form.country}
               local={form.phone}
-              onChange={(c, l) => setForm((p) => ({ ...p, country: c, phone: l }))}
+              onChange={(c, l) =>
+                setForm((p) => ({ ...p, country: c, phone: l }))
+              }
               onBlur={touch("phone")}
               invalid={!!err("phone")}
             />,
@@ -171,14 +208,22 @@ export default function RegisterTenantPage() {
                 onBlur={touch("acceptTerms")}
               />
               <span>
-                I agree to the Terms of Service and Privacy Policy, and consent to my data being processed to
-                run my workspace.
+                I agree to the Terms of Service and Privacy Policy, and consent
+                to my data being processed to run my workspace.
               </span>
             </label>
-            {err("acceptTerms") && <p className="mt-1 text-xs font-bold text-red-600">{err("acceptTerms")}</p>}
+            {err("acceptTerms") && (
+              <p className="mt-1 text-xs font-bold text-red-600">
+                {err("acceptTerms")}
+              </p>
+            )}
           </div>
 
-          <Button type="submit" className="w-full sm:col-span-2" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            className="w-full sm:col-span-2"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Creating account..." : "Create Account →"}
           </Button>
         </form>

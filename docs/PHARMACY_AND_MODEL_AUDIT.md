@@ -11,20 +11,20 @@ Status: implemented and tested. Every claim below was checked against the reposi
 
 ## 2. Issues found in the existing code
 
-| # | Issue | Severity | Resolution |
-|---|---|---|---|
-| 1 | `Invoice` "one live invoice per appointment" index used `$ne` in a partial index. MongoDB rejects that, so **the index never existed** in the real DB (verified: not in `invoices.indexes()`). | High | Rewritten with `$in: [unpaid, partial, paid]`. Pre-flight found 0 duplicates. |
-| 2 | Appointment overlap only blocked an identical start time; 10:00–10:30 and 10:15 could both be booked. | High | `AppointmentSlotLock` (see §4). |
-| 3 | Legacy `tenantId_1_uhid_1` unique index collided on `null` for every new patient (one patient per tenant). | High | Dropped (already gone in dev DB); removed the automatic `syncIndexes()` hook so no index is ever dropped implicitly. `migrate-pharmacy.js --apply` drops it where still present. |
-| 4 | `PurchaseInvoice` draft of mine had the same `$ne` partial-index mistake — caught by the index-build step of the new tests. | — | Fixed before shipping. |
-| 5 | `Doctor.departmentIds` referenced a `Department` model that did not exist; clinic ids were unchecked. | Medium | `Department` model + tenant-scoped validation in `doctorController`. |
-| 6 | Consultation sign was read-then-write (two requests could both "sign") and recorded no signer. | Medium | Atomic `draft → signed` update + `signedBy`. Duplicate-consultation race returns 409 instead of 500. |
-| 7 | Prescription items were free text only. | Medium | Optional `medicineId` + snapshots (§5). |
-| 8 | `Medicine.stockQty` was edited directly: no history, no batches, no expiry per lot. | High | Derived summary; real stock lives in batches + ledger (§3). |
-| 9 | Medicine/vendor could be deleted while stock history / purchases pointed at them. | Medium | Deletion refused (409) → mark inactive. |
-| 10 | `User.email` regex only accepted 2–3 character TLDs (`doc@clinic.health` was rejected). | Low | Loosened to a normal email shape. |
-| 11 | `AuditLog` is append-only by convention (no routes) but not enforced by the model. | Info | Not changed: `seed-full.js --remove` deletes its own sample audit rows. Recommend model-level hooks once seeding is retired. |
-| 12 | `Subscription.tenant` is `unique` (one per tenant) — correct. `Tenant.limits` is enforced by `assertWithinLimit`. | OK | No change; pharmacy is **not** plan-gated (no entitlement field exists — decision needed, see §10). |
+| #   | Issue                                                                                                                                                                                          | Severity | Resolution                                                                                                                                                                       |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `Invoice` "one live invoice per appointment" index used `$ne` in a partial index. MongoDB rejects that, so **the index never existed** in the real DB (verified: not in `invoices.indexes()`). | High     | Rewritten with `$in: [unpaid, partial, paid]`. Pre-flight found 0 duplicates.                                                                                                    |
+| 2   | Appointment overlap only blocked an identical start time; 10:00–10:30 and 10:15 could both be booked.                                                                                          | High     | `AppointmentSlotLock` (see §4).                                                                                                                                                  |
+| 3   | Legacy `tenantId_1_uhid_1` unique index collided on `null` for every new patient (one patient per tenant).                                                                                     | High     | Dropped (already gone in dev DB); removed the automatic `syncIndexes()` hook so no index is ever dropped implicitly. `migrate-pharmacy.js --apply` drops it where still present. |
+| 4   | `PurchaseInvoice` draft of mine had the same `$ne` partial-index mistake — caught by the index-build step of the new tests.                                                                    | —        | Fixed before shipping.                                                                                                                                                           |
+| 5   | `Doctor.departmentIds` referenced a `Department` model that did not exist; clinic ids were unchecked.                                                                                          | Medium   | `Department` model + tenant-scoped validation in `doctorController`.                                                                                                             |
+| 6   | Consultation sign was read-then-write (two requests could both "sign") and recorded no signer.                                                                                                 | Medium   | Atomic `draft → signed` update + `signedBy`. Duplicate-consultation race returns 409 instead of 500.                                                                             |
+| 7   | Prescription items were free text only.                                                                                                                                                        | Medium   | Optional `medicineId` + snapshots (§5).                                                                                                                                          |
+| 8   | `Medicine.stockQty` was edited directly: no history, no batches, no expiry per lot.                                                                                                            | High     | Derived summary; real stock lives in batches + ledger (§3).                                                                                                                      |
+| 9   | Medicine/vendor could be deleted while stock history / purchases pointed at them.                                                                                                              | Medium   | Deletion refused (409) → mark inactive.                                                                                                                                          |
+| 10  | `User.email` regex only accepted 2–3 character TLDs (`doc@clinic.health` was rejected).                                                                                                        | Low      | Loosened to a normal email shape.                                                                                                                                                |
+| 11  | `AuditLog` is append-only by convention (no routes) but not enforced by the model.                                                                                                             | Info     | Not changed: `seed-full.js --remove` deletes its own sample audit rows. Recommend model-level hooks once seeding is retired.                                                     |
+| 12  | `Subscription.tenant` is `unique` (one per tenant) — correct. `Tenant.limits` is enforced by `assertWithinLimit`.                                                                              | OK       | No change; pharmacy is **not** plan-gated (no entitlement field exists — decision needed, see §10).                                                                              |
 
 ## 3. Inventory model
 
@@ -58,27 +58,28 @@ PharmacySale ──> Invoice (patient sales, item.source.kind = "pharmacy_sale")
 
 ## 6. Indexes added (and why)
 
-| Collection | Index | Reason |
-|---|---|---|
-| medicinebatches | unique `(tenantId, clinicId, medicineId, batchNumber)` | one lot per medicine per store |
-| | `(tenantId, medicineId, clinicId, expiryDate, quantityAvailable)` | FEFO pick |
-| | `(tenantId, expiryDate)`, `(tenantId, purchaseInvoiceId)` | expiry sweeps, receipt lookup |
-| stocktransactions | `(tenantId, medicineId, occurredAt)`, `(tenantId, medicineBatchId, occurredAt)`, `(tenantId, referenceType, referenceId)` | history, per-batch ledger, source lookup |
-| | unique partial `(tenantId, idempotencyKey)` | retry safety |
-| purchaseinvoices | unique `(tenantId, number)`; unique partial `(tenantId, vendorId, invoiceNumber)` for draft/received | internal number; vendor invoice booked once |
-| | `(tenantId, invoiceDate)`, `(tenantId, status, paymentStatus)` | lists |
-| pharmacysales | unique `(tenantId, number)`, unique `(tenantId, idempotencyKey)`; `(tenantId, patientId, createdAt)`, `(tenantId, createdAt)` | numbering, replay, history |
-| appointmentslotlocks | unique `(doctorId, grain)`, `(appointmentId)` | overlap guard, release |
-| departments | unique `(tenantId, departmentId)`, `(tenantId, clinicId, nameKey)` | ids, no duplicate names per branch |
-| labtests | unique `(tenantId, testId)`, `(tenantId, nameKey)`, partial `(tenantId, code)` | catalogue |
-| medicines | partial unique `(tenantId, barcode)`, `(tenantId, sku)` (only when non-empty); `(tenantId, genericName)` | product identity, search |
-| invoices | partial unique `(tenantId, appointmentId)` over live statuses | fixes issue #1 |
+| Collection           | Index                                                                                                                         | Reason                                      |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| medicinebatches      | unique `(tenantId, clinicId, medicineId, batchNumber)`                                                                        | one lot per medicine per store              |
+|                      | `(tenantId, medicineId, clinicId, expiryDate, quantityAvailable)`                                                             | FEFO pick                                   |
+|                      | `(tenantId, expiryDate)`, `(tenantId, purchaseInvoiceId)`                                                                     | expiry sweeps, receipt lookup               |
+| stocktransactions    | `(tenantId, medicineId, occurredAt)`, `(tenantId, medicineBatchId, occurredAt)`, `(tenantId, referenceType, referenceId)`     | history, per-batch ledger, source lookup    |
+|                      | unique partial `(tenantId, idempotencyKey)`                                                                                   | retry safety                                |
+| purchaseinvoices     | unique `(tenantId, number)`; unique partial `(tenantId, vendorId, invoiceNumber)` for draft/received                          | internal number; vendor invoice booked once |
+|                      | `(tenantId, invoiceDate)`, `(tenantId, status, paymentStatus)`                                                                | lists                                       |
+| pharmacysales        | unique `(tenantId, number)`, unique `(tenantId, idempotencyKey)`; `(tenantId, patientId, createdAt)`, `(tenantId, createdAt)` | numbering, replay, history                  |
+| appointmentslotlocks | unique `(doctorId, grain)`, `(appointmentId)`                                                                                 | overlap guard, release                      |
+| departments          | unique `(tenantId, departmentId)`, `(tenantId, clinicId, nameKey)`                                                            | ids, no duplicate names per branch          |
+| labtests             | unique `(tenantId, testId)`, `(tenantId, nameKey)`, partial `(tenantId, code)`                                                | catalogue                                   |
+| medicines            | partial unique `(tenantId, barcode)`, `(tenantId, sku)` (only when non-empty); `(tenantId, genericName)`                      | product identity, search                    |
+| invoices             | partial unique `(tenantId, appointmentId)` over live statuses                                                                 | fixes issue #1                              |
 
 Pre-flight on the dev DB: 0 barcode/SKU duplicates, 0 duplicate live invoices per appointment, 0 slot overlaps among the 13 live bookings.
 
 ## 7. Migrations / backfills
 
 `node scripts/migrate-pharmacy.js` (dry run) → `--apply`. Idempotent, never deletes documents or drops collections, never runs `syncIndexes`:
+
 1. `legacyStockQty = stockQty` for medicines that lack the field (also done lazily on first touch, so skipping the script cannot lose stock).
 2. Slot-lock backfill for live scheduled appointments; any pre-existing overlap is **reported, not altered**.
 3. Duplicate pre-flight for the new unique indexes.

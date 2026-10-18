@@ -35,7 +35,9 @@ export function AppHeader({ title, onMobileMenuClick }: AppHeaderProps) {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <h1 className="font-display text-lg font-bold tracking-tight md:text-xl">{title}</h1>
+        <h1 className="font-display text-lg font-bold tracking-tight md:text-xl">
+          {title}
+        </h1>
       </div>
 
       <div className="flex items-center gap-3">
@@ -48,7 +50,12 @@ export function AppHeader({ title, onMobileMenuClick }: AppHeaderProps) {
         <Avatar className="h-9 w-9">
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
-        <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Log out">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleLogout}
+          aria-label="Log out"
+        >
           <LogOut className="h-4 w-4" />
         </Button>
       </div>

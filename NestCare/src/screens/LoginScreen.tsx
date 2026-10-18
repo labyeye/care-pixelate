@@ -56,16 +56,27 @@ export default function LoginScreen({ navigation }: any) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.brandStrip}>
-          <View style={[styles.logoBox, { borderColor: colors.border, backgroundColor: colors.primary }]}>
+          <View
+            style={[
+              styles.logoBox,
+              { borderColor: colors.border, backgroundColor: colors.primary },
+            ]}
+          >
             <HeartPulse size={26} color={colors.white} />
           </View>
           <View>
-            <Text style={[styles.brandName, { color: colors.text }]}>NestCare</Text>
-            <Text style={[styles.brandSub, { color: colors.mutedText }]}>Patient app</Text>
+            <Text style={[styles.brandName, { color: colors.text }]}>
+              NestCare
+            </Text>
+            <Text style={[styles.brandSub, { color: colors.mutedText }]}>
+              Patient app
+            </Text>
           </View>
         </View>
 
-        <Text style={[styles.heading, { color: colors.text }]}>Welcome back</Text>
+        <Text style={[styles.heading, { color: colors.text }]}>
+          Welcome back
+        </Text>
         <Text style={[styles.subheading, { color: colors.mutedText }]}>
           Sign in to your account
         </Text>
@@ -73,13 +84,20 @@ export default function LoginScreen({ navigation }: any) {
         {!!error && (
           <View style={[styles.errorBox, { borderColor: colors.destructive }]}>
             <AlertCircle size={16} color={colors.destructive} />
-            <Text style={[styles.errorText, { color: colors.destructive }]}>{error}</Text>
+            <Text style={[styles.errorText, { color: colors.destructive }]}>
+              {error}
+            </Text>
           </View>
         )}
 
         <View style={styles.fieldGroup}>
           <Text style={[styles.label, { color: colors.text }]}>Email</Text>
-          <View style={[styles.inputBorder, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+          <View
+            style={[
+              styles.inputBorder,
+              { borderColor: colors.border, backgroundColor: colors.surface },
+            ]}
+          >
             <TextInput
               style={[styles.input, { color: colors.text }]}
               placeholder="you@example.com"
@@ -98,7 +116,12 @@ export default function LoginScreen({ navigation }: any) {
 
         <View style={styles.fieldGroup}>
           <Text style={[styles.label, { color: colors.text }]}>Password</Text>
-          <View style={[styles.inputBorder, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+          <View
+            style={[
+              styles.inputBorder,
+              { borderColor: colors.border, backgroundColor: colors.surface },
+            ]}
+          >
             <TextInput
               style={[styles.input, { flex: 1, color: colors.text }]}
               placeholder="Your password"
@@ -111,7 +134,10 @@ export default function LoginScreen({ navigation }: any) {
               secureTextEntry={!showPw}
               autoCapitalize="none"
             />
-            <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPw(v => !v)}>
+            <TouchableOpacity
+              style={styles.eyeBtn}
+              onPress={() => setShowPw(v => !v)}
+            >
               {showPw ? (
                 <EyeOff size={18} color={colors.mutedText} />
               ) : (
@@ -121,21 +147,40 @@ export default function LoginScreen({ navigation }: any) {
           </View>
         </View>
 
-        <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={styles.forgotLink}>
-          <Text style={[styles.forgotText, { color: colors.primary }]}>Forgot password?</Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('ForgotPassword')}
+          style={styles.forgotLink}
+        >
+          <Text style={[styles.forgotText, { color: colors.primary }]}>
+            Forgot password?
+          </Text>
         </TouchableOpacity>
 
-        <Button title="Sign In" onPress={handleSubmit} loading={loading} style={styles.submitBtn} />
+        <Button
+          title="Sign In"
+          onPress={handleSubmit}
+          loading={loading}
+          style={styles.submitBtn}
+        />
 
         <View style={styles.footerRow}>
-          <Text style={[styles.footerText, { color: colors.mutedText }]}>Don't have an account? </Text>
+          <Text style={[styles.footerText, { color: colors.mutedText }]}>
+            Don't have an account?{' '}
+          </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={[styles.footerLink, { color: colors.primary }]}>Register</Text>
+            <Text style={[styles.footerLink, { color: colors.primary }]}>
+              Register
+            </Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={() => navigation.navigate('OTP')} style={styles.otpLink}>
-          <Text style={[styles.footerLink, { color: colors.secondary }]}>Sign in with OTP instead</Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('OTP')}
+          style={styles.otpLink}
+        >
+          <Text style={[styles.footerLink, { color: colors.secondary }]}>
+            Sign in with OTP instead
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -145,12 +190,29 @@ export default function LoginScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { paddingHorizontal: 24 },
-  brandStrip: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 32 },
-  logoBox: { width: 48, height: 48, borderWidth: 2, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  brandStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 32,
+  },
+  logoBox: {
+    width: 48,
+    height: 48,
+    borderWidth: 2,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   brandName: { fontSize: 18, fontWeight: '900' },
   brandSub: { fontSize: 12, fontWeight: '600' },
   heading: { fontSize: 26, fontWeight: '900' },
-  subheading: { fontSize: 14, fontWeight: '500', marginTop: 4, marginBottom: 20 },
+  subheading: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 4,
+    marginBottom: 20,
+  },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -162,7 +224,13 @@ const styles = StyleSheet.create({
   },
   errorText: { fontSize: 12, fontWeight: '700', flex: 1 },
   fieldGroup: { marginBottom: 16 },
-  label: { fontSize: 12, fontWeight: '800', textTransform: 'uppercase', marginBottom: 6, letterSpacing: 0.3 },
+  label: {
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    marginBottom: 6,
+    letterSpacing: 0.3,
+  },
   inputBorder: {
     flexDirection: 'row',
     alignItems: 'center',

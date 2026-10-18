@@ -11,7 +11,12 @@ interface HeaderProps {
   right?: ReactNode;
 }
 
-export default function Header({ title, subtitle, onBack, right }: HeaderProps) {
+export default function Header({
+  title,
+  subtitle,
+  onBack,
+  right,
+}: HeaderProps) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
 
@@ -41,7 +46,10 @@ export default function Header({ title, subtitle, onBack, right }: HeaderProps) 
           {title}
         </Text>
         {subtitle ? (
-          <Text style={[styles.subtitle, { color: colors.mutedText }]} numberOfLines={1}>
+          <Text
+            style={[styles.subtitle, { color: colors.mutedText }]}
+            numberOfLines={1}
+          >
             {subtitle}
           </Text>
         ) : null}

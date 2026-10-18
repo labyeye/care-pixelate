@@ -15,7 +15,10 @@ const mongoose = require("mongoose");
   const legacy = await col.find({ doctorId: { $exists: false } }).toArray();
   let n = 0;
   for (const d of legacy) {
-    const parts = String(d.name || "Unknown").replace(/^dr\.?\s+/i, "").trim().split(/\s+/);
+    const parts = String(d.name || "Unknown")
+      .replace(/^dr\.?\s+/i, "")
+      .trim()
+      .split(/\s+/);
     const firstName = parts[0] || "Unknown";
     const lastName = parts.length > 1 ? parts[parts.length - 1] : "-";
     const middleName = parts.slice(1, -1).join(" ");
@@ -38,11 +41,16 @@ const mongoose = require("mongoose");
           middleName,
           lastName,
           gender: "undisclosed",
-          contact: { phone: d.phone || "PENDING", email: d.email || "pending@invalid.local" },
+          contact: {
+            phone: d.phone || "PENDING",
+            email: d.email || "pending@invalid.local",
+          },
           professionalDetails: {
             registrationNumber: d.registrationNumber || "PENDING",
             registrationCouncil: "PENDING",
-            qualifications: d.qualification ? [{ degree: d.qualification, institution: "", year: null }] : [],
+            qualifications: d.qualification
+              ? [{ degree: d.qualification, institution: "", year: null }]
+              : [],
             specializations: d.specialization ? [d.specialization] : [],
             experienceYears: d.experienceYears || 0,
             bio: d.bio || "",
@@ -53,7 +61,9 @@ const mongoose = require("mongoose");
             followUpFee: d.followUpFee || 0,
             currency: "INR",
             appointmentDurationMinutes: d.slotMinutes || 15,
-            consultationModes: d.onlineConsult ? ["in_person", "video"] : ["in_person"],
+            consultationModes: d.onlineConsult
+              ? ["in_person", "video"]
+              : ["in_person"],
             acceptingAppointments: true,
           },
           followUpDays: d.followUpDays ?? 7,
@@ -65,7 +75,9 @@ const mongoose = require("mongoose");
     );
     n++;
   }
-  console.log(`Migrated ${n} doctor(s); ${await col.countDocuments({ doctorId: { $exists: true } })} now on the current schema.`);
+  console.log(
+    `Migrated ${n} doctor(s); ${await col.countDocuments({ doctorId: { $exists: true } })} now on the current schema.`,
+  );
   await mongoose.disconnect();
 })().catch((e) => {
   console.error(e);

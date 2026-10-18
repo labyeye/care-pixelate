@@ -12,10 +12,18 @@ export function AppLayout({ title, children }: AppLayoutProps) {
 
   return (
     <div className="app-shell flex min-h-screen bg-background">
-      <AppSidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
+      <AppSidebar
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
-        <AppHeader title={title} onMobileMenuClick={() => setMobileOpen(true)} />
-        <main className="flex-1 overflow-x-hidden p-4 animate-fade-in md:p-6">{children}</main>
+        <AppHeader
+          title={title}
+          onMobileMenuClick={() => setMobileOpen(true)}
+        />
+        <main className="flex-1 overflow-x-hidden p-4 animate-fade-in md:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

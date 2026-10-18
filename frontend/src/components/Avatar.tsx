@@ -1,10 +1,18 @@
 import { cn } from "@/lib/utils";
 import { photoUrl, type PhotoKind } from "@/services/api";
 
-const PALETTE = ["#024BAB", "#00C48C", "#FA731C", "#7C3AED", "#0891B2", "#DC2626"];
+const PALETTE = [
+  "#024BAB",
+  "#00C48C",
+  "#FA731C",
+  "#7C3AED",
+  "#0891B2",
+  "#DC2626",
+];
 const colorOf = (name: string) => {
   let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff;
+  for (let i = 0; i < name.length; i++)
+    h = (h * 31 + name.charCodeAt(i)) & 0xffffffff;
   return PALETTE[Math.abs(h) % PALETTE.length];
 };
 const initialsOf = (name: string) =>
@@ -43,8 +51,16 @@ export function Avatar({
 
   return (
     <span
-      className={cn("relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-black font-semibold text-white", className)}
-      style={{ width: size, height: size, backgroundColor: colorOf(name || "?"), fontSize: Math.max(9, Math.round(size * 0.36)) }}
+      className={cn(
+        "relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-black font-semibold text-white",
+        className,
+      )}
+      style={{
+        width: size,
+        height: size,
+        backgroundColor: colorOf(name || "?"),
+        fontSize: Math.max(9, Math.round(size * 0.36)),
+      }}
       aria-hidden={!name}
       title={name}
     >
@@ -87,8 +103,14 @@ export function PersonCell({
     <span className={cn("flex items-center gap-2", className)}>
       <Avatar kind={kind} id={id} name={name} src={src} version={version} />
       <span className="min-w-0">
-        <span className="block truncate font-bold leading-tight">{name || "—"}</span>
-        {sub && <span className="block truncate text-xs font-normal text-muted-foreground">{sub}</span>}
+        <span className="block truncate font-bold leading-tight">
+          {name || "—"}
+        </span>
+        {sub && (
+          <span className="block truncate text-xs font-normal text-muted-foreground">
+            {sub}
+          </span>
+        )}
       </span>
     </span>
   );

@@ -47,22 +47,48 @@ function redirect(order: PayOrder) {
 export async function runCheckout(
   order: PayOrder,
   label: string,
-  verify: (extra: { razorpayPaymentId?: string; razorpaySignature?: string; razorpayOrderId?: string }) => Promise<unknown>,
+  verify: (extra: {
+    razorpayPaymentId?: string;
+    razorpaySignature?: string;
+    razorpayOrderId?: string;
+  }) => Promise<unknown>,
 ): Promise<boolean> {
   if (order.checkoutMode === "redirect") {
     redirect(order);
     return new Promise<boolean>(() => {});
   }
-  const w = window as unknown as { Razorpay: new (o: unknown) => { open(): void }; Cashfree: (o: unknown) => Promise<{ checkout(o: unknown): Promise<{ error?: unknown }> }> };
+  const w = window as unknown as {
+    Razorpay: new (o: unknown) => { open(): void };
+    Cashfree: (
+      o: unknown,
+    ) => Promise<{ checkout(o: unknown): Promise<{ error?: unknown }> }>;
+  };
   if (order.gateway === "cashfree") {
-    if (!(await loadScript("https://sdk.cashfree.com/js/v3/cashfree.js", () => w.Cashfree))) throw new Error("Could not load Cashfree checkout");
-    const cf = await w.Cashfree({ mode: import.meta.env.PROD ? "production" : "sandbox" });
-    const r = await cf.checkout({ paymentSessionId: order.paymentSessionId, redirectTarget: "_modal" });
+    if (
+      !(await loadScript(
+        "https://sdk.cashfree.com/js/v3/cashfree.js",
+        () => w.Cashfree,
+      ))
+    )
+      throw new Error("Could not load Cashfree checkout");
+    const cf = await w.Cashfree({
+      mode: import.meta.env.PROD ? "production" : "sandbox",
+    });
+    const r = await cf.checkout({
+      paymentSessionId: order.paymentSessionId,
+      redirectTarget: "_modal",
+    });
     if (r.error) return false;
     await verify({});
     return true;
   }
-  if (!(await loadScript("https://checkout.razorpay.com/v1/checkout.js", () => w.Razorpay))) throw new Error("Could not load Razorpay checkout");
+  if (
+    !(await loadScript(
+      "https://checkout.razorpay.com/v1/checkout.js",
+      () => w.Razorpay,
+    ))
+  )
+    throw new Error("Could not load Razorpay checkout");
   return new Promise<boolean>((resolve, reject) => {
     new w.Razorpay({
       key: order.keyId,
@@ -72,8 +98,16 @@ export async function runCheckout(
       name: label,
       description: "Consultation fee",
       theme: { color: "#024BAB" },
-      handler: (r: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) =>
-        verify({ razorpayOrderId: r.razorpay_order_id, razorpayPaymentId: r.razorpay_payment_id, razorpaySignature: r.razorpay_signature }).then(() => resolve(true), reject),
+      handler: (r: {
+        razorpay_order_id: string;
+        razorpay_payment_id: string;
+        razorpay_signature: string;
+      }) =>
+        verify({
+          razorpayOrderId: r.razorpay_order_id,
+          razorpayPaymentId: r.razorpay_payment_id,
+          razorpaySignature: r.razorpay_signature,
+        }).then(() => resolve(true), reject),
       modal: { ondismiss: () => resolve(false) },
     }).open();
   });

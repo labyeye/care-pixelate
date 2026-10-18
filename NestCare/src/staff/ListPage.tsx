@@ -45,24 +45,59 @@ export default function ListPage<T extends { _id?: string }>({
 }) {
   const [q, setQ] = useState('');
   const [f, setF] = useState('');
-  const { data, loading, refreshing, error, refresh, reload } = useLoad(load, [...deps, reloadKey]);
-  const items = (data ?? []).filter(it => (!f || !filterFn || filterFn(it, f)) && (!searchOn || matchesQ(q, ...searchOn(it))));
+  const { data, loading, refreshing, error, refresh, reload } = useLoad(load, [
+    ...deps,
+    reloadKey,
+  ]);
+  const items = (data ?? []).filter(
+    it =>
+      (!f || !filterFn || filterFn(it, f)) &&
+      (!searchOn || matchesQ(q, ...searchOn(it))),
+  );
 
   return (
-    <Screen title={title} subtitle={subtitle} onBack={onBack} right={right} loading={loading && !data}>
+    <Screen
+      title={title}
+      subtitle={subtitle}
+      onBack={onBack}
+      right={right}
+      loading={loading && !data}
+    >
       <FlatList
         data={items}
         keyExtractor={(it, i) => it._id ?? String(i)}
         renderItem={({ item, index }) => renderItem(item, index)}
         contentContainerStyle={{ paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={C.primary} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refresh}
+            tintColor={C.primary}
+          />
+        }
         ListHeaderComponent={
           <View>
-            {header ? <View style={{ padding: 12, paddingBottom: 0 }}>{header(data ?? [], reload)}</View> : null}
-            {searchOn ? <SearchBar value={q} onChange={setQ} placeholder={searchPlaceholder} /> : null}
-            {filters ? <Pills options={filters} value={f} onChange={setF} /> : null}
-            {error ? <Text style={{ color: C.danger, fontWeight: '700', padding: 12 }}>{error}</Text> : null}
+            {header ? (
+              <View style={{ padding: 12, paddingBottom: 0 }}>
+                {header(data ?? [], reload)}
+              </View>
+            ) : null}
+            {searchOn ? (
+              <SearchBar
+                value={q}
+                onChange={setQ}
+                placeholder={searchPlaceholder}
+              />
+            ) : null}
+            {filters ? (
+              <Pills options={filters} value={f} onChange={setF} />
+            ) : null}
+            {error ? (
+              <Text style={{ color: C.danger, fontWeight: '700', padding: 12 }}>
+                {error}
+              </Text>
+            ) : null}
           </View>
         }
         ListEmptyComponent={<Empty icon={emptyIcon} text={emptyText} />}

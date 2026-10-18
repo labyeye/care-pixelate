@@ -36,10 +36,10 @@ export default function Button({
     variant === 'primary'
       ? colors.primary
       : variant === 'secondary'
-      ? colors.secondary
-      : variant === 'destructive'
-      ? colors.destructive
-      : colors.surface;
+        ? colors.secondary
+        : variant === 'destructive'
+          ? colors.destructive
+          : colors.surface;
 
   const textColor = variant === 'outline' ? colors.text : colors.white;
 

@@ -14,10 +14,7 @@ const userSchema = new mongoose.Schema(
       required: [true, "Please add an email"],
       unique: true,
       lowercase: true,
-      match: [
-        /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
-        "Please add a valid email",
-      ],
+      match: [/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/, "Please add a valid email"],
     },
     password: {
       type: String,
@@ -66,10 +63,14 @@ const userSchema = new mongoose.Schema(
     loginOtpExpires: { type: Date, select: false },
     resetPasswordTokenHash: { type: String, select: false },
     resetPasswordExpires: { type: Date, select: false },
-    refreshTokenHash: {
-      type: String,
-      select: false,
-    },
+    // Wrong guesses against the current OTP; 5 strikes burn the code (6 digits are only 10^6 possibilities).
+    loginOtpTries: { type: Number, default: 0, select: false },
+    phoneOtpTries: { type: Number, default: 0, select: false },
+    // Bumped on every password change (pre-save hook); older JWTs carry the old value and are refused by `protect`.
+    tokenVersion: { type: Number, default: 0 },
+    // Brute-force guard: 10 wrong passwords lock the account for 15 minutes.
+    failedLogins: { type: Number, default: 0 },
+    lockUntil: { type: Date },
   },
   { timestamps: true },
 );
@@ -80,6 +81,7 @@ userSchema.pre("save", async function (next) {
   }
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
+  if (!this.isNew) this.tokenVersion = (this.tokenVersion || 0) + 1;
 });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {

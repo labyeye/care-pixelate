@@ -53,7 +53,12 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   const build = (slim: boolean) => (
     <div className="flex h-full flex-col bg-white">
       {/* Brand — fixed at the top */}
-      <div className={cn("flex h-16 shrink-0 items-center border-b-2 border-black", slim ? "justify-center px-2" : "gap-3 px-4")}>
+      <div
+        className={cn(
+          "flex h-16 shrink-0 items-center border-b-2 border-black",
+          slim ? "justify-center px-2" : "gap-3 px-4",
+        )}
+      >
         <img
           src={slim ? logoShort : logoLong}
           alt="NestCare"
@@ -120,8 +125,12 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
               {user.name?.[0]?.toUpperCase() ?? "U"}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-xs font-bold text-black">{user.name}</p>
-              <p className="truncate text-[10px] capitalize text-muted-foreground">{user.role?.replace(/_/g, " ")}</p>
+              <p className="truncate text-xs font-bold text-black">
+                {user.name}
+              </p>
+              <p className="truncate text-[10px] capitalize text-muted-foreground">
+                {user.role?.replace(/_/g, " ")}
+              </p>
             </div>
           </div>
           <button
@@ -151,13 +160,20 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className="absolute -right-4 top-20 z-10 flex h-7 w-7 items-center justify-center border-2 border-black bg-[#024BAB] text-white transition-colors hover:bg-[#023d8c]"
         >
-          {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+          {collapsed ? (
+            <ChevronRight className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronLeft className="h-3.5 w-3.5" />
+          )}
         </button>
       </aside>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={onMobileClose} />
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={onMobileClose}
+          />
           <div className="absolute inset-y-0 left-0 w-64 animate-slide-in-left border-r-2 border-black">
             {build(false)}
           </div>

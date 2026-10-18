@@ -32,7 +32,9 @@ function randomSalt(length = 4) {
 function paramsToString(params) {
   return Object.keys(params)
     .sort()
-    .map((k) => (params[k] === undefined || params[k] === null ? "" : params[k]))
+    .map((k) =>
+      params[k] === undefined || params[k] === null ? "" : params[k],
+    )
     .join("|");
 }
 

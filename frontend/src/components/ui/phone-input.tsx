@@ -38,7 +38,10 @@ export function composePhone(country: string, local: string) {
 }
 
 /** Inverse of composePhone, for pre-filling an edit form from a stored number. */
-export function splitPhone(stored: string | undefined | null): { country: string; local: string } {
+export function splitPhone(stored: string | undefined | null): {
+  country: string;
+  local: string;
+} {
   const digits = String(stored ?? "").replace(/\D/g, "");
   if (digits.length <= 10) return { country: DEFAULT_COUNTRY, local: digits };
   const local = digits.slice(-10);
@@ -105,8 +108,7 @@ export function PhoneInput({
           aria-expanded={open}
           className="flex shrink-0 items-center gap-1.5 border-r-2 border-black px-2 text-sm font-bold hover:bg-muted"
         >
-          <Flag iso={current.iso} name={current.name} />
-          +{current.code}
+          <Flag iso={current.iso} name={current.name} />+{current.code}
           <ChevronDown className="h-3.5 w-3.5" />
         </button>
         <input
@@ -116,7 +118,9 @@ export function PhoneInput({
           autoComplete="tel-national"
           value={local}
           placeholder={placeholder}
-          onChange={(e) => onChange(country, e.target.value.replace(/\D/g, "").slice(0, 10))}
+          onChange={(e) =>
+            onChange(country, e.target.value.replace(/\D/g, "").slice(0, 10))
+          }
           onBlur={onBlur}
           className="min-w-0 flex-1 bg-transparent px-3 text-sm font-medium outline-none"
         />

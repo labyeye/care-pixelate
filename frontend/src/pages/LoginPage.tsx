@@ -322,7 +322,12 @@ export default function LoginPage() {
           {mode === "select" && (
             <div className="space-y-3">
               {choices.map((c) => {
-                const meta = [c.patientId, c.age != null ? `${c.age} yrs` : "", c.gender, c.role !== "patient" ? c.role.replace(/_/g, " ") : ""]
+                const meta = [
+                  c.patientId,
+                  c.age != null ? `${c.age} yrs` : "",
+                  c.gender,
+                  c.role !== "patient" ? c.role.replace(/_/g, " ") : "",
+                ]
                   .filter(Boolean)
                   .join(" · ");
                 return (
@@ -337,8 +342,12 @@ export default function LoginPage() {
                       {c.name?.[0]?.toUpperCase() ?? "?"}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-bold capitalize text-black">{c.name}</span>
-                      <span className="block truncate text-xs capitalize text-gray-500">{meta}</span>
+                      <span className="block truncate font-bold capitalize text-black">
+                        {c.name}
+                      </span>
+                      <span className="block truncate text-xs capitalize text-gray-500">
+                        {meta}
+                      </span>
                       <span className="block truncate text-xs text-gray-400">
                         {[c.clinic, c.email].filter(Boolean).join(" · ")}
                       </span>
@@ -481,7 +490,10 @@ export default function LoginPage() {
                 </p>
                 <p className="mt-2 text-xs text-gray-500">
                   Patient?{" "}
-                  <Link to="/register-patient" className="font-bold text-[#024BAB] hover:underline transition-colors">
+                  <Link
+                    to="/register-patient"
+                    className="font-bold text-[#024BAB] hover:underline transition-colors"
+                  >
                     Create your patient account
                   </Link>
                 </p>

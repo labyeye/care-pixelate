@@ -4,7 +4,9 @@
 //   node scripts/repair-billing.js            dry run: show what would be completed
 //   node scripts/repair-billing.js --apply    complete the paid purchase
 // Amounts are recomputed from the same server price table the order was created with (pricing.js).
-require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
+require("dotenv").config({
+  path: require("path").join(__dirname, "..", ".env"),
+});
 const mongoose = require("mongoose");
 const Subscription = require("../models/Subscription");
 const Tenant = require("../models/Tenant");
@@ -12,7 +14,10 @@ const { PLANS, calculatePricing } = require("../utils/pricing");
 
 const APPLY = process.argv.includes("--apply");
 const STAFF_PER_DOCTOR = 5; // same constant as routes/billingRoutes.js
-const broken = (i) => i.status === "paid" && i.razorpayPaymentId && (typeof i.amount !== "number" || !i.plan);
+const broken = (i) =>
+  i.status === "paid" &&
+  i.razorpayPaymentId &&
+  (typeof i.amount !== "number" || !i.plan);
 
 (async () => {
   await mongoose.connect(process.env.MONGO_URI);
@@ -24,21 +29,31 @@ const broken = (i) => i.status === "paid" && i.razorpayPaymentId && (typeof i.am
     hit++;
     const tenant = await Tenant.findById(sub.tenant);
     const plan = PLANS[sub.plan] ? sub.plan : null;
-    const doctors = Math.max(sub.doctors || 1, plan ? PLANS[plan].minDoctors : 1);
+    const doctors = Math.max(
+      sub.doctors || 1,
+      plan ? PLANS[plan].minDoctors : 1,
+    );
     const cycle = sub.billingCycle === "yearly" ? "yearly" : "monthly";
-    console.log(`- ${tenant?.name}: ${bad.length} paid invoice(s) missing details; subscription=${sub.status}/${sub.plan}/${cycle}, tenant plan=${tenant?.plan}`);
+    console.log(
+      `- ${tenant?.name}: ${bad.length} paid invoice(s) missing details; subscription=${sub.status}/${sub.plan}/${cycle}, tenant plan=${tenant?.plan}`,
+    );
     if (!plan) {
       console.log("  cannot repair: subscription has no valid plan");
       continue;
     }
     const price = calculatePricing(plan, doctors, cycle);
-    console.log(`  would set: plan=${plan}, doctors=${doctors}, ${cycle}, subtotal=${price.subtotal}, gst=${price.gst}, total=${price.total}`);
-    console.log(`  tenant -> plan=${plan}, planExpiresAt=${sub.currentPeriodEnd?.toISOString()}, doctorLimit=${doctors}`);
+    console.log(
+      `  would set: plan=${plan}, doctors=${doctors}, ${cycle}, subtotal=${price.subtotal}, gst=${price.gst}, total=${price.total}`,
+    );
+    console.log(
+      `  tenant -> plan=${plan}, planExpiresAt=${sub.currentPeriodEnd?.toISOString()}, doctorLimit=${doctors}`,
+    );
     if (!APPLY) continue;
 
     let n = 0;
     for (const i of bad) {
-      i.invoiceNumber = i.invoiceNumber || `INV-NC-${String(++n).padStart(4, "0")}`;
+      i.invoiceNumber =
+        i.invoiceNumber || `INV-NC-${String(++n).padStart(4, "0")}`;
       i.plan = plan;
       i.doctors = doctors;
       i.billingCycle = cycle;
@@ -60,7 +75,13 @@ const broken = (i) => i.status === "paid" && i.razorpayPaymentId && (typeof i.am
     }
     console.log("  repaired.");
   }
-  console.log(hit ? (APPLY ? "Done." : "Dry run only. Re-run with --apply to repair.") : "Nothing to repair.");
+  console.log(
+    hit
+      ? APPLY
+        ? "Done."
+        : "Dry run only. Re-run with --apply to repair."
+      : "Nothing to repair.",
+  );
   await mongoose.disconnect();
 })().catch((e) => {
   console.error("FAILED:", e.message);

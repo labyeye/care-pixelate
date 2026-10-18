@@ -2,7 +2,12 @@ const mongoose = require("mongoose");
 
 const medicineSchema = new mongoose.Schema(
   {
-    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "Tenant", required: true, index: true },
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tenant",
+      required: true,
+      index: true,
+    },
     medicineId: { type: String, required: true, trim: true },
     name: { type: String, required: true, trim: true },
     genericName: { type: String, default: "", trim: true },
@@ -11,7 +16,21 @@ const medicineSchema = new mongoose.Schema(
     category: { type: String, default: "", trim: true },
     dosageForm: {
       type: String,
-      enum: ["tablet", "capsule", "syrup", "suspension", "injection", "cream", "ointment", "drops", "inhaler", "powder", "gel", "lotion", "other"],
+      enum: [
+        "tablet",
+        "capsule",
+        "syrup",
+        "suspension",
+        "injection",
+        "cream",
+        "ointment",
+        "drops",
+        "inhaler",
+        "powder",
+        "gel",
+        "lotion",
+        "other",
+      ],
       required: true,
     },
     strength: { type: String, default: "", trim: true },
@@ -25,7 +44,18 @@ const medicineSchema = new mongoose.Schema(
     packSize: { type: Number, min: 1, default: 1 },
     unit: {
       type: String,
-      enum: ["tablet", "capsule", "ml", "bottle", "vial", "tube", "strip", "piece", "pack", "other"],
+      enum: [
+        "tablet",
+        "capsule",
+        "ml",
+        "bottle",
+        "vial",
+        "tube",
+        "strip",
+        "piece",
+        "pack",
+        "other",
+      ],
       default: "piece",
     },
     prescriptionRequired: { type: Boolean, default: true },
@@ -48,10 +78,18 @@ const medicineSchema = new mongoose.Schema(
     legacyStockQty: { type: Number, min: 0, default: 0 },
     expiryDate: { type: Date }, // earliest expiry of stock on hand
     // Supplier the stock came from — set on the medicine and updated on every stock-in.
-    vendor: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor", default: null },
+    vendor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Vendor",
+      default: null,
+    },
     description: { type: String, default: "", trim: true },
     isActive: { type: Boolean, default: true },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   { timestamps: true },
 );
@@ -61,8 +99,14 @@ medicineSchema.index({ tenantId: 1, medicineId: 1 }, { unique: true });
 // Search medicines by name and strength
 medicineSchema.index({ tenantId: 1, name: 1, strength: 1 });
 // Barcode / SKU identify one product inside an organisation (only enforced when filled in).
-medicineSchema.index({ tenantId: 1, barcode: 1 }, { unique: true, partialFilterExpression: { barcode: { $gt: "" } } });
-medicineSchema.index({ tenantId: 1, sku: 1 }, { unique: true, partialFilterExpression: { sku: { $gt: "" } } });
+medicineSchema.index(
+  { tenantId: 1, barcode: 1 },
+  { unique: true, partialFilterExpression: { barcode: { $gt: "" } } },
+);
+medicineSchema.index(
+  { tenantId: 1, sku: 1 },
+  { unique: true, partialFilterExpression: { sku: { $gt: "" } } },
+);
 medicineSchema.index({ tenantId: 1, genericName: 1 });
 
 module.exports = mongoose.model("Medicine", medicineSchema);

@@ -19,6 +19,7 @@ connectDB();
 const app = express();
 
 app.set("trust proxy", 1);
+app.use(require("compression")());
 
 app.use(
   helmet({
@@ -30,7 +31,9 @@ app.use(
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowed = (process.env.CLIENT_URL || "http://localhost:8080").split(",").map((s) => s.trim());
+      const allowed = (process.env.CLIENT_URL || "http://localhost:8080")
+        .split(",")
+        .map((s) => s.trim());
       if (!origin || allowed.includes(origin)) return callback(null, true);
       callback(null, false);
     },
@@ -71,7 +74,9 @@ const authLimiter = rateLimit({
   },
 });
 
-app.use("/api/", (req, res, next) => (req.path.startsWith("/photos/") ? next() : generalLimiter(req, res, next)));
+app.use("/api/", (req, res, next) =>
+  req.path.startsWith("/photos/") ? next() : generalLimiter(req, res, next),
+);
 
 app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
@@ -89,20 +94,50 @@ app.use("/api/tenants", audit("tenant"), require("./routes/tenantRoutes"));
 app.use("/api/billing", require("./routes/billingRoutes"));
 app.use("/api/patients", audit("patient"), require("./routes/patientRoutes"));
 app.use("/api/doctors", require("./routes/doctorRoutes"));
-app.use("/api/appointments", audit("appointment"), require("./routes/appointmentRoutes"));
-app.use("/api/consultations", audit("consultation"), require("./routes/consultationRoutes"));
+app.use(
+  "/api/appointments",
+  audit("appointment"),
+  require("./routes/appointmentRoutes"),
+);
+app.use(
+  "/api/consultations",
+  audit("consultation"),
+  require("./routes/consultationRoutes"),
+);
 app.use("/api/staff", audit("staff"), require("./routes/staffRoutes"));
 app.use("/api/payments", audit("payment"), require("./routes/paymentRoutes"));
 app.use("/api/invoices", audit("invoice"), require("./routes/invoiceRoutes"));
 app.use("/api/lab-orders", audit("lab_order"), require("./routes/labRoutes"));
-app.use("/api/medicines", audit("medicine"), require("./routes/medicineRoutes"));
+app.use(
+  "/api/medicines",
+  audit("medicine"),
+  require("./routes/medicineRoutes"),
+);
 app.use("/api/vendors", audit("vendor"), require("./routes/vendorRoutes"));
-app.use("/api/purchases", audit("purchase"), require("./routes/purchaseRoutes"));
-app.use("/api/inventory", audit("inventory"), require("./routes/inventoryRoutes"));
+app.use(
+  "/api/purchases",
+  audit("purchase"),
+  require("./routes/purchaseRoutes"),
+);
+app.use(
+  "/api/inventory",
+  audit("inventory"),
+  require("./routes/inventoryRoutes"),
+);
 app.use("/api/pharmacy", audit("pharmacy"), require("./routes/pharmacyRoutes"));
-app.use("/api/departments", audit("department"), require("./routes/departmentRoutes"));
+app.use(
+  "/api/departments",
+  audit("department"),
+  require("./routes/departmentRoutes"),
+);
 app.use("/api/lab-tests", audit("lab_test"), require("./routes/labTestRoutes"));
-app.use("/api/me",audit("portal"), require("./routes/patientPortalRoutes"));
+app.use("/api/me", audit("portal"), require("./routes/patientPortalRoutes"));
+app.use("/api/whatsapp", audit("whatsapp"), require("./routes/whatsappRoutes"));
+app.use(
+  "/api/follow-ups",
+  audit("follow_up"),
+  require("./routes/followUpRoutes"),
+);
 app.use("/api/photos", require("./routes/photoRoutes"));
 app.use("/api/summary", require("./routes/summaryRoutes"));
 app.use("/api/reports", audit("report"), require("./routes/reportRoutes"));
@@ -122,6 +157,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5050;
 
 app.listen(PORT, () => {
+  if (process.env.NODE_ENV !== "test") require("./utils/reminders").start();
   if (process.env.NODE_ENV === "development") {
     console.log(`NestCare API running on port ${PORT}`);
   }

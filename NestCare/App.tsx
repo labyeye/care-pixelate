@@ -14,9 +14,15 @@ import { FONT } from './src/theme';
 
 // App-wide default font (DM Sans, same as NestHR) for any Text / TextInput without an explicit family.
 (Text as any).defaultProps = (Text as any).defaultProps || {};
-(Text as any).defaultProps.style = [{ fontFamily: FONT.medium }, (Text as any).defaultProps.style];
+(Text as any).defaultProps.style = [
+  { fontFamily: FONT.medium },
+  (Text as any).defaultProps.style,
+];
 (TextInput as any).defaultProps = (TextInput as any).defaultProps || {};
-(TextInput as any).defaultProps.style = [{ fontFamily: FONT.medium }, (TextInput as any).defaultProps.style];
+(TextInput as any).defaultProps.style = [
+  { fontFamily: FONT.medium },
+  (TextInput as any).defaultProps.style,
+];
 
 function App() {
   return (

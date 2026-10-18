@@ -1,25 +1,46 @@
+import { writePrintDocument } from "./printWindow";
 // Printable prescription for the patient portal. Opens a print window (Save as PDF from there),
 // same approach as the invoice PDF. All interpolated values are escaped.
 import { escapeHtml as esc } from "./escapeHtml";
 import type { Consultation, Doctor, Patient, Tenant } from "@/types";
 
-const obj = <T,>(v: unknown): T | undefined => (v && typeof v === "object" ? (v as T) : undefined);
-const date = (v?: string) => (v ? new Date(v).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—");
+const obj = <T>(v: unknown): T | undefined =>
+  v && typeof v === "object" ? (v as T) : undefined;
+const date = (v?: string) =>
+  v
+    ? new Date(v).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
 const age = (dob?: string) => {
   if (!dob) return "";
   const y = Math.floor((Date.now() - new Date(dob).getTime()) / 31_557_600_000);
   return y >= 0 && y < 150 ? `${y} yrs` : "";
 };
 
-export function buildPrescriptionHTML(c: Consultation, tenant: Tenant | null): string {
+export function buildPrescriptionHTML(
+  c: Consultation,
+  tenant: Tenant | null,
+): string {
   const p = obj<Patient>(c.patientId);
   const d = obj<Doctor>(c.doctorId);
   const org = esc(tenant?.gstDetails?.legalName || tenant?.name || "Clinic");
-  const addr = [tenant?.contact?.address, tenant?.contact?.city, tenant?.contact?.state, tenant?.contact?.pincode].filter(Boolean).map(esc).join(", ");
+  const addr = [
+    tenant?.contact?.address,
+    tenant?.contact?.city,
+    tenant?.contact?.state,
+    tenant?.contact?.pincode,
+  ]
+    .filter(Boolean)
+    .map(esc)
+    .join(", ");
   const items = c.prescription?.items ?? [];
   const rows = items
     .map(
-      (i, n) => `<tr><td>${n + 1}</td><td><b>${esc(i.drug)}</b></td><td>${esc(i.dose || "—")}</td><td>${esc(i.frequency || "—")}</td><td>${i.days ? esc(i.days) + " days" : "—"}</td><td>${esc(i.instructions || "")}</td></tr>`,
+      (i, n) =>
+        `<tr><td>${n + 1}</td><td><b>${esc(i.drug)}</b></td><td>${esc(i.dose || "—")}</td><td>${esc(i.frequency || "—")}</td><td>${i.days ? esc(i.days) + " days" : "—"}</td><td>${esc(i.instructions || "")}</td></tr>`,
     )
     .join("");
   const spec = (d?.professionalDetails?.specializations ?? []).join(", ");
@@ -60,11 +81,12 @@ ${c.prescription?.advice ? `<div class="sec"><div class="lbl">Advice</div>${esc(
 </div></body></html>`;
 }
 
-export function printPrescription(c: Consultation, tenant: Tenant | null): boolean {
+export function printPrescription(
+  c: Consultation,
+  tenant: Tenant | null,
+): boolean {
   const w = window.open("", "_blank");
   if (!w) return false;
-  w.document.write(buildPrescriptionHTML(c, tenant));
-  w.document.close();
-  setTimeout(() => w.print(), 400);
+  writePrintDocument(w, buildPrescriptionHTML(c, tenant), true);
   return true;
 }

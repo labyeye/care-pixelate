@@ -10,7 +10,10 @@ import { cn } from "@/lib/utils";
  */
 export function RowActions({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="flex justify-end gap-2"
+      onClick={(e) => e.stopPropagation()}
+    >
       {children}
     </div>
   );
@@ -26,7 +29,14 @@ interface ActionButtonProps {
   className?: string;
 }
 
-export function ActionButton({ label, icon: Icon, onClick, to, disabled, className }: ActionButtonProps) {
+export function ActionButton({
+  label,
+  icon: Icon,
+  onClick,
+  to,
+  disabled,
+  className,
+}: ActionButtonProps) {
   if (to && !disabled) {
     return (
       <Button asChild variant="outline" size="icon" className={className}>
@@ -37,7 +47,15 @@ export function ActionButton({ label, icon: Icon, onClick, to, disabled, classNa
     );
   }
   return (
-    <Button variant="outline" size="icon" aria-label={label} title={label} disabled={disabled} onClick={onClick} className={cn(className)}>
+    <Button
+      variant="outline"
+      size="icon"
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(className)}
+    >
       <Icon className="h-4 w-4" />
     </Button>
   );

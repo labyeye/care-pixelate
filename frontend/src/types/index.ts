@@ -69,11 +69,30 @@ export interface Tenant {
   status: "active" | "suspended" | "cancelled";
   branding: TenantBranding;
   contact: TenantContact;
-  limits: { userLimit: number; storageLimit: number; doctorLimit?: number; patientLimit?: number };
+  limits: {
+    userLimit: number;
+    storageLimit: number;
+    doctorLimit?: number;
+    patientLimit?: number;
+  };
   activeModules: string[];
   gstDetails?: { gstin: string; legalName: string; pan?: string };
-  bank?: { accountHolder?: string; bankName?: string; branch?: string; accountNumber?: string; ifsc?: string; accountType?: "current" | "savings"; upiId?: string };
-  invoiceSettings?: { terms?: string; footerNote?: string; signatoryName?: string; signatoryTitle?: string; showBank?: boolean };
+  bank?: {
+    accountHolder?: string;
+    bankName?: string;
+    branch?: string;
+    accountNumber?: string;
+    ifsc?: string;
+    accountType?: "current" | "savings";
+    upiId?: string;
+  };
+  invoiceSettings?: {
+    terms?: string;
+    footerNote?: string;
+    signatoryName?: string;
+    signatoryTitle?: string;
+    showBank?: boolean;
+  };
   /** Invoice Designer layout (Settings -> Invoice Designer); null/absent = the classic invoice. */
   invoiceTemplate?: unknown;
   /** Consultation Designer layout (Settings -> Consultation Designer); null/absent = the classic prescription. */
@@ -98,10 +117,18 @@ export interface Patient {
   profileImage?: string;
   dateOfBirth: string;
   gender: PatientGender;
-  bloodGroup?: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-" | "unknown";
-  maritalStatus?: "single" | "married" | "divorced" | "widowed" | "other" | "undisclosed";
+  bloodGroup?:
+    "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-" | "unknown";
+  maritalStatus?:
+    "single" | "married" | "divorced" | "widowed" | "other" | "undisclosed";
   contact: { phone: string; alternatePhone?: string; email?: string };
-  address?: { street?: string; city?: string; state?: string; pincode?: string; country?: string };
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    country?: string;
+  };
   emergencyContact?: { name?: string; relationship?: string; phone?: string };
   guardian?: { name?: string; relationship?: string; phone?: string };
   medicalSummary?: {
@@ -110,7 +137,11 @@ export interface Patient {
     pastMedicalHistory?: string[];
     pastSurgicalHistory?: string[];
     familyMedicalHistory?: string[];
-    currentMedications?: { name?: string; dosage?: string; frequency?: string }[];
+    currentMedications?: {
+      name?: string;
+      dosage?: string;
+      frequency?: string;
+    }[];
     notes?: string;
   };
   patientStatus: "active" | "inactive" | "archived";
@@ -139,11 +170,21 @@ export interface Doctor {
   gender?: "male" | "female" | "other" | "undisclosed";
   dateOfBirth?: string | null;
   contact: { phone: string; email: string };
-  address?: { street?: string; city?: string; state?: string; pincode?: string; country?: string };
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    country?: string;
+  };
   professionalDetails: {
     registrationNumber: string;
     registrationCouncil: string;
-    qualifications?: { degree: string; institution?: string; year?: number | null }[];
+    qualifications?: {
+      degree: string;
+      institution?: string;
+      year?: number | null;
+    }[];
     specializations?: string[];
     experienceYears?: number;
     bio?: string;
@@ -251,7 +292,14 @@ export interface Consultation {
   appointmentId?: string;
   patientId: string | Patient;
   doctorId: string | Doctor;
-  vitals?: { bp?: string; pulse?: number; tempC?: number; spo2?: number; weightKg?: number; heightCm?: number };
+  vitals?: {
+    bp?: string;
+    pulse?: number;
+    tempC?: number;
+    spo2?: number;
+    weightKg?: number;
+    heightCm?: number;
+  };
   complaints?: string;
   diagnosis: string[];
   notes?: string;
@@ -266,7 +314,14 @@ export interface Consultation {
 }
 
 export interface Triage {
-  vitals: { bp?: string; pulse?: number; tempC?: number; spo2?: number; weightKg?: number; heightCm?: number };
+  vitals: {
+    bp?: string;
+    pulse?: number;
+    tempC?: number;
+    spo2?: number;
+    weightKg?: number;
+    heightCm?: number;
+  };
   complaints: string;
   recordedBy: { name: string; role: string } | null;
   recordedAt: string | null;
@@ -303,7 +358,10 @@ export interface Medicine {
   description?: string;
   isActive: boolean;
   /** Supplier (populated by the API); send the id string when saving. */
-  vendor?: { _id: string; vendorId: string; businessName: string; phone?: string } | string | null;
+  vendor?:
+    | { _id: string; vendorId: string; businessName: string; phone?: string }
+    | string
+    | null;
   createdAt?: string;
 }
 
@@ -312,10 +370,21 @@ export interface Vendor {
   vendorId: string;
   vendorType: string;
   businessName: string;
-  contactPerson?: { name?: string; designation?: string; phone?: string; email?: string };
+  contactPerson?: {
+    name?: string;
+    designation?: string;
+    phone?: string;
+    email?: string;
+  };
   phone: string;
   email?: string;
-  address?: { street?: string; city?: string; state?: string; pincode?: string; country?: string };
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    country?: string;
+  };
   gstin?: string;
   drugLicenseNumber?: string;
   paymentTerms: string;
@@ -323,7 +392,12 @@ export interface Vendor {
   drugLicenseExpiry?: string | null;
   creditLimit?: number;
   openingBalance?: number;
-  bankDetails?: { accountHolderName?: string; accountNumber?: string; ifscCode?: string; bankName?: string };
+  bankDetails?: {
+    accountHolderName?: string;
+    accountNumber?: string;
+    ifscCode?: string;
+    bankName?: string;
+  };
   notes?: string;
   status: "active" | "inactive" | "blocked";
   /** Supply figures computed from the medicines linked to this vendor (list endpoint only). */

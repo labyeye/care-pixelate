@@ -2,7 +2,11 @@
 import { Share } from 'react-native';
 import { fmtDate, fmtTime, money, personName } from './ui';
 
-export const receiptNumber = (a: { _id: string; createdAt?: string; scheduledAt: string }) =>
+export const receiptNumber = (a: {
+  _id: string;
+  createdAt?: string;
+  scheduledAt: string;
+}) =>
   `BKG-${new Date(a.createdAt ?? a.scheduledAt).toISOString().slice(0, 10).replace(/-/g, '')}-${a._id.slice(-5).toUpperCase()}`;
 
 export function receiptText(a: any, tenant: any): string {
@@ -14,10 +18,14 @@ export function receiptText(a: any, tenant: any): string {
         ? 'Waived'
         : 'Payable at the clinic';
   const doctor = personName(a.doctorId);
-  const spec = (a.doctorId?.professionalDetails?.specializations ?? []).join(', ');
+  const spec = (a.doctorId?.professionalDetails?.specializations ?? []).join(
+    ', ',
+  );
   const lines = [
     `${tenant?.gstDetails?.legalName || tenant?.name || 'Clinic'}`,
-    [tenant?.contact?.address, tenant?.contact?.city].filter(Boolean).join(', '),
+    [tenant?.contact?.address, tenant?.contact?.city]
+      .filter(Boolean)
+      .join(', '),
     tenant?.contact?.phone ? `Phone: ${tenant.contact.phone}` : '',
     '',
     'APPOINTMENT BOOKING RECEIPT',
@@ -36,8 +44,14 @@ export function receiptText(a: any, tenant: any): string {
     '',
     'Please arrive 10 minutes early and carry this receipt with a photo ID.',
   ];
-  return lines.filter((l, i) => l !== '' || lines[i - 1] !== '').filter(l => l !== undefined).join('\n');
+  return lines
+    .filter((l, i) => l !== '' || lines[i - 1] !== '')
+    .filter(l => l !== undefined)
+    .join('\n');
 }
 
 export const shareReceipt = (a: any, tenant: any) =>
-  Share.share({ title: `Booking receipt ${receiptNumber(a)}`, message: receiptText(a, tenant) });
+  Share.share({
+    title: `Booking receipt ${receiptNumber(a)}`,
+    message: receiptText(a, tenant),
+  });

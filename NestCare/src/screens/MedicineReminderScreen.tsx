@@ -1,5 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Switch, TextInput, Modal, StyleSheet, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Switch,
+  TextInput,
+  Modal,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Plus, Pill, X, Trash2 } from 'lucide-react-native';
 import { useTheme } from '../contexts/ThemeContext';
@@ -35,7 +45,9 @@ export default function MedicineReminderScreen({ navigation }: any) {
   }, [load]);
 
   const toggle = async (r: any) => {
-    setReminders(prev => prev.map(x => (x._id === r._id ? { ...x, active: !x.active } : x)));
+    setReminders(prev =>
+      prev.map(x => (x._id === r._id ? { ...x, active: !x.active } : x)),
+    );
     try {
       await meAPI.updateReminder(r._id, { active: !r.active });
     } catch {
@@ -61,9 +73,19 @@ export default function MedicineReminderScreen({ navigation }: any) {
     ]);
 
   const addReminder = async () => {
-    const times = time.split(',').map(t => t.trim()).filter(Boolean);
-    if (!medicine.trim() || !times.length || !times.every(t => TIME_RE.test(t))) {
-      Alert.alert('Check details', 'Enter the medicine and 24h times like 08:00, 20:30');
+    const times = time
+      .split(',')
+      .map(t => t.trim())
+      .filter(Boolean);
+    if (
+      !medicine.trim() ||
+      !times.length ||
+      !times.every(t => TIME_RE.test(t))
+    ) {
+      Alert.alert(
+        'Check details',
+        'Enter the medicine and 24h times like 08:00, 20:30',
+      );
       return;
     }
     setSaving(true);
@@ -86,18 +108,38 @@ export default function MedicineReminderScreen({ navigation }: any) {
       <FlatList
         data={reminders}
         keyExtractor={item => item._id}
-        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 90 }]}
-        ListEmptyComponent={<Text style={{ color: colors.mutedText, fontWeight: '600' }}>No reminders yet. Tap + to add one.</Text>}
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: insets.bottom + 90 },
+        ]}
+        ListEmptyComponent={
+          <Text style={{ color: colors.mutedText, fontWeight: '600' }}>
+            No reminders yet. Tap + to add one.
+          </Text>
+        }
         renderItem={({ item }) => (
           <Card style={styles.card}>
-            <View style={[styles.icon, { borderColor: colors.border, backgroundColor: colors.purple }]}>
+            <View
+              style={[
+                styles.icon,
+                { borderColor: colors.border, backgroundColor: colors.purple },
+              ]}
+            >
               <Pill size={18} color={colors.white} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.name, { color: colors.text }]}>{item.drug}</Text>
-              <Text style={[styles.time, { color: colors.mutedText }]}>{(item.times || []).join(' · ')}</Text>
+              <Text style={[styles.name, { color: colors.text }]}>
+                {item.drug}
+              </Text>
+              <Text style={[styles.time, { color: colors.mutedText }]}>
+                {(item.times || []).join(' · ')}
+              </Text>
             </View>
-            <TouchableOpacity onPress={() => remove(item)} accessibilityLabel={`Delete ${item.drug}`} style={{ padding: 6 }}>
+            <TouchableOpacity
+              onPress={() => remove(item)}
+              accessibilityLabel={`Delete ${item.drug}`}
+              style={{ padding: 6 }}
+            >
               <Trash2 size={18} color={colors.destructive} />
             </TouchableOpacity>
             <Switch
@@ -111,17 +153,37 @@ export default function MedicineReminderScreen({ navigation }: any) {
       />
 
       <TouchableOpacity
-        style={[styles.fab, { borderColor: colors.border, backgroundColor: colors.primary, bottom: insets.bottom + 20 }, nbShadow]}
+        style={[
+          styles.fab,
+          {
+            borderColor: colors.border,
+            backgroundColor: colors.primary,
+            bottom: insets.bottom + 20,
+          },
+          nbShadow,
+        ]}
         onPress={() => setModalOpen(true)}
       >
         <Plus size={24} color={colors.white} />
       </TouchableOpacity>
 
-      <Modal visible={modalOpen} transparent animationType="slide" onRequestClose={() => setModalOpen(false)}>
+      <Modal
+        visible={modalOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalOpen(false)}
+      >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalSheet, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <View
+            style={[
+              styles.modalSheet,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Add Reminder</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                Add Reminder
+              </Text>
               <TouchableOpacity onPress={() => setModalOpen(false)}>
                 <X size={20} color={colors.text} />
               </TouchableOpacity>
@@ -131,16 +193,27 @@ export default function MedicineReminderScreen({ navigation }: any) {
               placeholderTextColor={colors.mutedText}
               value={medicine}
               onChangeText={setMedicine}
-              style={[styles.input, { borderColor: colors.border, color: colors.text }]}
+              style={[
+                styles.input,
+                { borderColor: colors.border, color: colors.text },
+              ]}
             />
             <TextInput
               placeholder="Times, 24h (e.g. 08:00, 20:30)"
               placeholderTextColor={colors.mutedText}
               value={time}
               onChangeText={setTime}
-              style={[styles.input, { borderColor: colors.border, color: colors.text }]}
+              style={[
+                styles.input,
+                { borderColor: colors.border, color: colors.text },
+              ]}
             />
-            <Button title="Add Reminder" onPress={addReminder} loading={saving} style={styles.addBtn} />
+            <Button
+              title="Add Reminder"
+              onPress={addReminder}
+              loading={saving}
+              style={styles.addBtn}
+            />
           </View>
         </View>
       </Modal>
@@ -151,8 +224,20 @@ export default function MedicineReminderScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   wrap: { flex: 1 },
   list: { padding: 16, gap: 12 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 2 },
-  icon: { width: 44, height: 44, borderWidth: 2, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 2,
+  },
+  icon: {
+    width: 44,
+    height: 44,
+    borderWidth: 2,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   name: { fontSize: 14, fontWeight: '900' },
   time: { fontSize: 12, fontWeight: '600', marginTop: 2 },
   fab: {
@@ -165,10 +250,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
   modalSheet: { borderTopWidth: 3, padding: 20 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   modalTitle: { fontSize: 17, fontWeight: '900' },
-  input: { borderWidth: 2, borderRadius: 8, paddingHorizontal: 12, height: 46, fontSize: 13, fontWeight: '600', marginBottom: 12 },
+  input: {
+    borderWidth: 2,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    height: 46,
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
   addBtn: { marginTop: 4 },
 });

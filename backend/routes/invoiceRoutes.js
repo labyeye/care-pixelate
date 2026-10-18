@@ -1,13 +1,25 @@
 const express = require("express");
 const c = require("../controllers/invoiceController");
-const { protect, authorize, requirePlan, pageAccess, ADMINS } = require("../middleware/auth");
+const {
+  protect,
+  authorize,
+  requirePlan,
+  pageAccess,
+  ADMINS,
+} = require("../middleware/auth");
 const tenantScope = require("../middleware/tenantScope");
 
 const router = express.Router();
 
 const BILLING = [...ADMINS, "receptionist", "billing_executive"];
 
-router.use(protect, requirePlan, tenantScope, pageAccess("invoices"), authorize(...BILLING));
+router.use(
+  protect,
+  requirePlan,
+  tenantScope,
+  pageAccess("invoices"),
+  authorize(...BILLING),
+);
 
 router.route("/").get(c.getAll).post(c.create);
 router.post("/from-appointment/:appointmentId", c.fromAppointment);

@@ -98,8 +98,17 @@ const tenantSchema = new mongoose.Schema(
     },
     // The organisation's OWN gateway account: patient fees land in their bank, not ours. Secrets are select:false
     // and never returned by any API; read them only through utils/paymentConfig.credsFor().
+    // WhatsApp messages to patients. Off by default; templates themselves live in utils/whatsappTemplates.js.
+    whatsapp: {
+      enabled: { type: Boolean, default: false },
+      disabledTemplates: { type: [String], default: [] },
+    },
     paymentConfig: {
-      provider: { type: String, enum: ["razorpay", "cashfree", "phonepe", "paytm"], default: "razorpay" },
+      provider: {
+        type: String,
+        enum: ["razorpay", "cashfree", "phonepe", "paytm"],
+        default: "razorpay",
+      },
       enabled: { type: Boolean, default: false },
       razorpayKeyId: { type: String, default: "" },
       razorpayKeySecret: { type: String, default: "", select: false },
@@ -123,7 +132,11 @@ const tenantSchema = new mongoose.Schema(
       branch: { type: String, default: "" },
       accountNumber: { type: String, default: "" },
       ifsc: { type: String, default: "" },
-      accountType: { type: String, enum: ["current", "savings"], default: "current" },
+      accountType: {
+        type: String,
+        enum: ["current", "savings"],
+        default: "current",
+      },
       upiId: { type: String, default: "" },
     },
     // Invoice Designer layout (validated by utils/invoiceTemplate.js); null = the classic invoice layout.

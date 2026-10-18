@@ -4,11 +4,21 @@ const mongoose = require("mongoose");
 // keeps its own name/unit/range snapshot so old reports never change.
 const labTestSchema = new mongoose.Schema(
   {
-    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "Tenant", required: true },
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tenant",
+      required: true,
+    },
     testId: { type: String, required: true, trim: true }, // LT-0001
     name: { type: String, required: true, trim: true, maxlength: 160 },
     nameKey: { type: String, required: true, lowercase: true, trim: true },
-    code: { type: String, default: "", trim: true, uppercase: true, maxlength: 30 },
+    code: {
+      type: String,
+      default: "",
+      trim: true,
+      uppercase: true,
+      maxlength: 30,
+    },
     category: { type: String, default: "", trim: true },
     specimenType: { type: String, default: "", trim: true }, // blood, urine, swab…
     description: { type: String, default: "", maxlength: 500 },
@@ -22,7 +32,11 @@ const labTestSchema = new mongoose.Schema(
       text: { type: String, default: "" },
     },
     status: { type: String, enum: ["active", "inactive"], default: "active" },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   { timestamps: true },
 );

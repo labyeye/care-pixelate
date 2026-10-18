@@ -3,7 +3,8 @@ const errorHandler = (err, req, res, next) => {
   let message = err.message;
 
   // Service-layer errors (StockError, SlotConflict) carry their own HTTP status.
-  if (Number.isInteger(err.status) && err.status >= 400 && err.status < 600) statusCode = err.status;
+  if (Number.isInteger(err.status) && err.status >= 400 && err.status < 600)
+    statusCode = err.status;
 
   if (err.name === "CastError" && err.kind === "ObjectId") {
     statusCode = 404;

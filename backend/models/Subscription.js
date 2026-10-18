@@ -11,7 +11,11 @@ const invoiceSchema = new mongoose.Schema(
     subtotal: Number,
     gst: Number,
     amount: Number, // GST-inclusive, rupees
-    status: { type: String, enum: ["created", "paid", "failed"], default: "created" },
+    status: {
+      type: String,
+      enum: ["created", "paid", "failed"],
+      default: "created",
+    },
     paidAt: Date,
   },
   { timestamps: true },
@@ -19,11 +23,24 @@ const invoiceSchema = new mongoose.Schema(
 
 const subscriptionSchema = new mongoose.Schema(
   {
-    tenant: { type: mongoose.Schema.Types.ObjectId, ref: "Tenant", required: true, unique: true },
+    tenant: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tenant",
+      required: true,
+      unique: true,
+    },
     plan: { type: String, default: "trial" },
-    billingCycle: { type: String, enum: ["monthly", "yearly"], default: "monthly" },
+    billingCycle: {
+      type: String,
+      enum: ["monthly", "yearly"],
+      default: "monthly",
+    },
     doctors: { type: Number, default: 1 },
-    status: { type: String, enum: ["trialing", "active", "expired", "cancelled"], default: "trialing" },
+    status: {
+      type: String,
+      enum: ["trialing", "active", "expired", "cancelled"],
+      default: "trialing",
+    },
     currentPeriodStart: Date,
     currentPeriodEnd: Date,
     pendingOrder: {

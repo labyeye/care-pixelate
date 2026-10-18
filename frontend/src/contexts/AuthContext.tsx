@@ -19,7 +19,10 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   /** Returns a pendingToken when the account needs a 2FA code. */
-  login: (email: string, password: string) => Promise<{ pendingToken?: string }>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ pendingToken?: string }>;
   /** Re-reads the session after a login that happened outside `login` (2FA / OTP). */
   refreshSession: () => Promise<void>;
   register: (payload: Parameters<typeof authAPI.register>[0]) => Promise<void>;
@@ -73,12 +76,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadMe();
   }, [loadMe]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await authAPI.login({ email, password });
-    if (res.requires2FA) return { pendingToken: res.pendingToken };
-    await loadMe();
-    return {};
-  }, [loadMe]);
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const res = await authAPI.login({ email, password });
+      if (res.requires2FA) return { pendingToken: res.pendingToken };
+      await loadMe();
+      return {};
+    },
+    [loadMe],
+  );
 
   const register = useCallback(
     async (payload: Parameters<typeof authAPI.register>[0]) => {

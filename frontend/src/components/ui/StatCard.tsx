@@ -35,7 +35,8 @@ export function StatCard({
       onClick={onClick}
       className={cn(
         "nb-rise nb-lift border-2 border-black bg-white p-4 flex items-center gap-3 text-left",
-        !onClick && "hover:!shadow-none hover:!translate-x-0 hover:!translate-y-0",
+        !onClick &&
+          "hover:!shadow-none hover:!translate-x-0 hover:!translate-y-0",
         active && "shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]",
         className,
       )}

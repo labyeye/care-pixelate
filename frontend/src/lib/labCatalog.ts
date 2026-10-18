@@ -1,8 +1,18 @@
 /** Common lab/diagnostic test catalogue. Reference ranges are generic adult values — the user can edit them per order. */
-export type CatalogTest = { name: string; unit?: string; low?: number; high?: number };
+export type CatalogTest = {
+  name: string;
+  unit?: string;
+  low?: number;
+  high?: number;
+};
 
 // [name, unit, low, high] — numeric ranges only where a single adult range makes sense.
-const t = (name: string, unit?: string, low?: number, high?: number): CatalogTest => ({ name, unit, low, high });
+const t = (
+  name: string,
+  unit?: string,
+  low?: number,
+  high?: number,
+): CatalogTest => ({ name, unit, low, high });
 
 export const LAB_CATALOG: Record<string, CatalogTest[]> = {
   "Hematology / Blood": [
@@ -134,9 +144,15 @@ export const LAB_CATALOG: Record<string, CatalogTest[]> = {
 export const LAB_CATEGORIES = Object.keys(LAB_CATALOG);
 
 /** Find a catalogue test by exact name (case-insensitive), optionally within one category. */
-export function findCatalogTest(name: string, category?: string): CatalogTest | undefined {
+export function findCatalogTest(
+  name: string,
+  category?: string,
+): CatalogTest | undefined {
   const n = name.trim().toLowerCase();
-  const pools = category && LAB_CATALOG[category] ? [LAB_CATALOG[category]] : Object.values(LAB_CATALOG);
+  const pools =
+    category && LAB_CATALOG[category]
+      ? [LAB_CATALOG[category]]
+      : Object.values(LAB_CATALOG);
   for (const pool of pools) {
     const hit = pool.find((x) => x.name.toLowerCase() === n);
     if (hit) return hit;
@@ -146,5 +162,7 @@ export function findCatalogTest(name: string, category?: string): CatalogTest | 
 /** Category a test name belongs to, if it's in the catalogue. */
 export function categoryOf(name: string): string | undefined {
   const n = name.trim().toLowerCase();
-  return LAB_CATEGORIES.find((c) => LAB_CATALOG[c].some((x) => x.name.toLowerCase() === n));
+  return LAB_CATEGORIES.find((c) =>
+    LAB_CATALOG[c].some((x) => x.name.toLowerCase() === n),
+  );
 }

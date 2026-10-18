@@ -1,40 +1,56 @@
-import PaymentReturnPage from "./pages/PaymentReturnPage";
+const PaymentReturnPage = lazy(() => import("./pages/PaymentReturnPage"));
+import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import { isStaffPath, pagesForPath } from "@/config/navigation";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import CalendarPage from "@/pages/CalendarPage";
-import ConsultationPage from "@/pages/ConsultationPage";
-import ConsultationsPage from "@/pages/ConsultationsPage";
-import InvoicesPage from "@/pages/InvoicesPage";
-import LabOrdersPage from "@/pages/LabOrdersPage";
-import MedicinesPage from "@/pages/MedicinesPage";
-import PasswordResetPage from "@/pages/PasswordResetPage";
-import AnalyticsPage from "@/pages/AnalyticsPage";
-import AuditLogPage from "@/pages/AuditLogPage";
-import LocationsPage from "@/pages/LocationsPage";
-import ReportsPage from "@/pages/ReportsPage";
-import StaffPage from "@/pages/StaffPage";
-import VendorsPage from "@/pages/VendorsPage";
-import BillingPage from "@/pages/BillingPage";
-import AppointmentsPage from "@/pages/AppointmentsPage";
-import DashboardPage from "@/pages/DashboardPage";
-import DoctorsPage from "@/pages/DoctorsPage";
-import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+const CalendarPage = lazy(() => import("@/pages/CalendarPage"));
+const ConsultationPage = lazy(() => import("@/pages/ConsultationPage"));
+const ConsultationsPage = lazy(() => import("@/pages/ConsultationsPage"));
+const FollowUpsPage = lazy(() => import("@/pages/FollowUpsPage"));
+const InvoicesPage = lazy(() => import("@/pages/InvoicesPage"));
+const LabOrdersPage = lazy(() => import("@/pages/LabOrdersPage"));
+const MedicinesPage = lazy(() => import("@/pages/MedicinesPage"));
+const PasswordResetPage = lazy(() => import("@/pages/PasswordResetPage"));
+const AnalyticsPage = lazy(() => import("@/pages/AnalyticsPage"));
+const AuditLogPage = lazy(() => import("@/pages/AuditLogPage"));
+const LocationsPage = lazy(() => import("@/pages/LocationsPage"));
+const ReportsPage = lazy(() => import("@/pages/ReportsPage"));
+const StaffPage = lazy(() => import("@/pages/StaffPage"));
+const VendorsPage = lazy(() => import("@/pages/VendorsPage"));
+const BillingPage = lazy(() => import("@/pages/BillingPage"));
+const AppointmentsPage = lazy(() => import("@/pages/AppointmentsPage"));
+const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
+const DoctorsPage = lazy(() => import("@/pages/DoctorsPage"));
+const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
 import LoginPage from "@/pages/LoginPage";
-import ResetPasswordPage from "@/pages/ResetPasswordPage";
-import OnboardingPage from "@/pages/OnboardingPage";
-import PatientsPage from "@/pages/PatientsPage";
-import RegisterTenantPage from "@/pages/RegisterTenantPage";
-import SettingsPage from "@/pages/SettingsPage";
-import PatientRegisterPage from "@/pages/PatientRegisterPage";
-import MyAppointmentsPage from "@/pages/portal/MyAppointmentsPage";
-import MyDocumentsPage from "@/pages/portal/MyDocumentsPage";
-import { MyInvoicesPage, MyLabReportsPage, MyPrescriptionsPage } from "@/pages/portal/MyMedicalPages";
-import MyProfilePage from "@/pages/portal/MyProfilePage";
-import MyVitalsPage from "@/pages/portal/MyVitalsPage";
+const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
+const OnboardingPage = lazy(() => import("@/pages/OnboardingPage"));
+const PatientsPage = lazy(() => import("@/pages/PatientsPage"));
+const RegisterTenantPage = lazy(() => import("@/pages/RegisterTenantPage"));
+const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
+const PatientRegisterPage = lazy(() => import("@/pages/PatientRegisterPage"));
+const MyAppointmentsPage = lazy(() => import("@/pages/portal/MyAppointmentsPage"));
+const MyDocumentsPage = lazy(() => import("@/pages/portal/MyDocumentsPage"));
+const MyInvoicesPage = lazy(() =>
+  import("@/pages/portal/MyMedicalPages").then((m) => ({ default: m.MyInvoicesPage })),
+);
+const MyLabReportsPage = lazy(() =>
+  import("@/pages/portal/MyMedicalPages").then((m) => ({ default: m.MyLabReportsPage })),
+);
+const MyPrescriptionsPage = lazy(() =>
+  import("@/pages/portal/MyMedicalPages").then((m) => ({ default: m.MyPrescriptionsPage })),
+);
+const MyProfilePage = lazy(() => import("@/pages/portal/MyProfilePage"));
+const MyVitalsPage = lazy(() => import("@/pages/portal/MyVitalsPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,8 +68,9 @@ const LoadingScreen = () => (
 );
 
 // An owner who registered but hasn't created an organisation yet.
-const needsOnboarding = (u: { role: string; tenantId?: string | null } | null) =>
-  !!u && u.role !== "super_admin" && !u.tenantId;
+const needsOnboarding = (
+  u: { role: string; tenantId?: string | null } | null,
+) => !!u && u.role !== "super_admin" && !u.tenantId;
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user, pages } = useAuth();
@@ -66,13 +83,25 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   // Patients only get the /my/* portal; clinic staff never see it.
   const isPortal = pathname.startsWith("/my/");
   // /dashboard is shared: patients get their portal home there, so it must not bounce to itself.
-  if (user?.role === "patient" && pathname !== "/dashboard" && isStaffPath(pathname)) return <Navigate to="/dashboard" replace />;
-  if (isPortal && user?.role !== "patient") return <Navigate to="/dashboard" replace />;
+  if (
+    user?.role === "patient" &&
+    pathname !== "/dashboard" &&
+    isStaffPath(pathname)
+  )
+    return <Navigate to="/dashboard" replace />;
+  if (isPortal && user?.role !== "patient")
+    return <Navigate to="/dashboard" replace />;
 
   // Role permissions: a direct URL to a page this role may not use bounces to the landing page.
   const needed = pagesForPath(pathname);
-  const clinicStaff = !!user && user.role !== "super_admin" && user.role !== "patient";
-  if (clinicStaff && pages && needed && !needed.some((k) => pages.includes(k))) {
+  const clinicStaff =
+    !!user && user.role !== "super_admin" && user.role !== "patient";
+  if (
+    clinicStaff &&
+    pages &&
+    needed &&
+    !needed.some((k) => pages.includes(k))
+  ) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -85,7 +114,12 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
 
   if (isLoading) return <LoadingScreen />;
   if (isAuthenticated) {
-    return <Navigate to={needsOnboarding(user) ? "/onboarding" : "/dashboard"} replace />;
+    return (
+      <Navigate
+        to={needsOnboarding(user) ? "/onboarding" : "/dashboard"}
+        replace
+      />
+    );
   }
 
   return <>{children}</>;
@@ -102,19 +136,97 @@ function OnboardingRoute() {
 
 function AppRoutes() {
   return (
-    <Routes>
-      <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
-      <Route path="/register" element={<PublicOnlyRoute><RegisterTenantPage /></PublicOnlyRoute>} />
-      <Route path="/register-patient" element={<PublicOnlyRoute><PatientRegisterPage /></PublicOnlyRoute>} />
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
+      <Route
+        path="/login"
+        element={
+          <PublicOnlyRoute>
+            <LoginPage />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PublicOnlyRoute>
+            <RegisterTenantPage />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/register-patient"
+        element={
+          <PublicOnlyRoute>
+            <PatientRegisterPage />
+          </PublicOnlyRoute>
+        }
+      />
       <Route path="/onboarding" element={<OnboardingRoute />} />
-      <Route path="/payment-return" element={<ProtectedRoute><PaymentReturnPage /></ProtectedRoute>} />
-      <Route path="/my/appointments" element={<ProtectedRoute><MyAppointmentsPage /></ProtectedRoute>} />
-      <Route path="/my/prescriptions" element={<ProtectedRoute><MyPrescriptionsPage /></ProtectedRoute>} />
-      <Route path="/my/lab-reports" element={<ProtectedRoute><MyLabReportsPage /></ProtectedRoute>} />
-      <Route path="/my/invoices" element={<ProtectedRoute><MyInvoicesPage /></ProtectedRoute>} />
-      <Route path="/my/documents" element={<ProtectedRoute><MyDocumentsPage /></ProtectedRoute>} />
-      <Route path="/my/vitals" element={<ProtectedRoute><MyVitalsPage /></ProtectedRoute>} />
-      <Route path="/my/profile" element={<ProtectedRoute><MyProfilePage /></ProtectedRoute>} />
+      <Route
+        path="/payment-return"
+        element={
+          <ProtectedRoute>
+            <PaymentReturnPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my/appointments"
+        element={
+          <ProtectedRoute>
+            <MyAppointmentsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my/prescriptions"
+        element={
+          <ProtectedRoute>
+            <MyPrescriptionsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my/lab-reports"
+        element={
+          <ProtectedRoute>
+            <MyLabReportsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my/invoices"
+        element={
+          <ProtectedRoute>
+            <MyInvoicesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my/documents"
+        element={
+          <ProtectedRoute>
+            <MyDocumentsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my/vitals"
+        element={
+          <ProtectedRoute>
+            <MyVitalsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my/profile"
+        element={
+          <ProtectedRoute>
+            <MyProfilePage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
       <Route
@@ -138,6 +250,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DoctorsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/follow-ups"
+        element={
+          <ProtectedRoute>
+            <FollowUpsPage />
           </ProtectedRoute>
         }
       />
@@ -272,6 +392,7 @@ function AppRoutes() {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
+      </Suspense>
   );
 }
 

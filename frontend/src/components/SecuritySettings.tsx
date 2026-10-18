@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,7 +34,9 @@ export function SecuritySettings() {
       await fn();
       toast.success(ok);
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Something went wrong");
+      toast.error(
+        err instanceof ApiError ? err.message : "Something went wrong",
+      );
     } finally {
       setBusy(false);
     }
@@ -50,7 +58,10 @@ export function SecuritySettings() {
             <Button
               disabled={busy}
               onClick={() =>
-                run(async () => setQr(await authAPI.totpSetup()), "Scan the QR with your authenticator app")
+                run(
+                  async () => setQr(await authAPI.totpSetup()),
+                  "Scan the QR with your authenticator app",
+                )
               }
             >
               Set up
@@ -58,11 +69,22 @@ export function SecuritySettings() {
           )}
           {!user?.totpEnabled && qr && (
             <div className="space-y-3">
-              <img src={qr.qrCode} alt="Authenticator QR" className="h-44 w-44 border-2 border-black" />
-              <p className="text-xs text-muted-foreground break-all">Or enter manually: {qr.secret}</p>
+              <img
+                src={qr.qrCode}
+                alt="Authenticator QR"
+                className="h-44 w-44 border-2 border-black"
+              />
+              <p className="text-xs text-muted-foreground break-all">
+                Or enter manually: {qr.secret}
+              </p>
               <div className="space-y-1.5">
                 <Label htmlFor="totp">6-digit code</Label>
-                <Input id="totp" inputMode="numeric" value={totpCode} onChange={(e) => setTotpCode(digits(e.target.value))} />
+                <Input
+                  id="totp"
+                  inputMode="numeric"
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(digits(e.target.value))}
+                />
               </div>
               <Button
                 disabled={busy || totpCode.length < 6}
@@ -82,8 +104,15 @@ export function SecuritySettings() {
           {user?.totpEnabled && (
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="totp-off">Enter a current code to disable</Label>
-                <Input id="totp-off" inputMode="numeric" value={totpCode} onChange={(e) => setTotpCode(digits(e.target.value))} />
+                <Label htmlFor="totp-off">
+                  Enter a current code to disable
+                </Label>
+                <Input
+                  id="totp-off"
+                  inputMode="numeric"
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(digits(e.target.value))}
+                />
               </div>
               <Button
                 variant="outline"
@@ -115,12 +144,23 @@ export function SecuritySettings() {
         <CardContent className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="wa-phone">Phone number</Label>
-            <Input id="wa-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+91 98765 43210" />
+            <Input
+              id="wa-phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+91 98765 43210"
+            />
           </div>
           {otpSent && (
             <div className="space-y-1.5">
               <Label htmlFor="wa-otp">OTP</Label>
-              <Input id="wa-otp" inputMode="numeric" value={otp} onChange={(e) => setOtp(digits(e.target.value))} />
+              <Input
+                id="wa-otp"
+                inputMode="numeric"
+                value={otp}
+                onChange={(e) => setOtp(digits(e.target.value))}
+              />
             </div>
           )}
           <div className="flex gap-2">

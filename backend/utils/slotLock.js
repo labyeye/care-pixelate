@@ -25,7 +25,9 @@ class SlotConflict extends Error {
  */
 async function acquire({ tenantId, doctorId, appointmentId, start, end }) {
   const want = grainsFor(start, end);
-  const mine = (await AppointmentSlotLock.find({ doctorId, appointmentId }).select("grain")).map((l) => l.grain);
+  const mine = (
+    await AppointmentSlotLock.find({ doctorId, appointmentId }).select("grain")
+  ).map((l) => l.grain);
   const have = new Set(mine);
   const fresh = want.filter((g) => !have.has(g));
   if (fresh.length) {
@@ -36,17 +38,32 @@ async function acquire({ tenantId, doctorId, appointmentId, start, end }) {
       );
     } catch (err) {
       // Some inserts may have succeeded before the duplicate — remove exactly those (they are ours), then report.
-      await AppointmentSlotLock.deleteMany({ doctorId, appointmentId, grain: { $in: fresh } });
-      if (err && (err.code === 11000 || (err.writeErrors || []).some((w) => w.code === 11000))) throw new SlotConflict();
+      await AppointmentSlotLock.deleteMany({
+        doctorId,
+        appointmentId,
+        grain: { $in: fresh },
+      });
+      if (
+        err &&
+        (err.code === 11000 ||
+          (err.writeErrors || []).some((w) => w.code === 11000))
+      )
+        throw new SlotConflict();
       throw err;
     }
   }
   // Drop grains of the old window that the new window no longer covers.
   const stale = mine.filter((g) => !want.includes(g));
-  if (stale.length) await AppointmentSlotLock.deleteMany({ doctorId, appointmentId, grain: { $in: stale } });
+  if (stale.length)
+    await AppointmentSlotLock.deleteMany({
+      doctorId,
+      appointmentId,
+      grain: { $in: stale },
+    });
 }
 
 /** Free everything this appointment holds (cancelled / completed / no-show / deleted). */
-const release = (appointmentId) => AppointmentSlotLock.deleteMany({ appointmentId });
+const release = (appointmentId) =>
+  AppointmentSlotLock.deleteMany({ appointmentId });
 
 module.exports = { acquire, release, grainsFor, SlotConflict, GRAIN_MS };

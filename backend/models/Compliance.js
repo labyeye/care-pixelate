@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
-const oid = (ref, required = false) => ({ type: mongoose.Schema.Types.ObjectId, ref, required });
+const oid = (ref, required = false) => ({
+  type: mongoose.Schema.Types.ObjectId,
+  ref,
+  required,
+});
 
 // Append-only access trail (no update/delete routes exist). Bodies are never stored: they hold PHI.
 const AuditLog = mongoose.model(
@@ -11,7 +15,11 @@ const AuditLog = mongoose.model(
       userId: oid("User"),
       role: String,
       method: String,
-      action: { type: String, enum: ["view", "create", "update", "delete", "action"], required: true },
+      action: {
+        type: String,
+        enum: ["view", "create", "update", "delete", "action"],
+        required: true,
+      },
       resource: { type: String, required: true },
       resourceId: String,
       path: String,
@@ -32,7 +40,13 @@ const Clinic = mongoose.model(
     {
       tenantId: oid("Tenant", true),
       name: { type: String, required: true, trim: true, maxlength: 120 },
-      code: { type: String, required: true, trim: true, uppercase: true, maxlength: 12 },
+      code: {
+        type: String,
+        required: true,
+        trim: true,
+        uppercase: true,
+        maxlength: 12,
+      },
       address: {
         street: { type: String, default: "" },
         city: { type: String, default: "" },
@@ -56,7 +70,11 @@ const AbhaLink = mongoose.model(
       patientId: oid("Patient", true),
       abhaNumber: { type: String, required: true }, // 14 digits, stored without hyphens
       abhaAddress: { type: String, trim: true, lowercase: true, default: "" },
-      status: { type: String, enum: ["unverified", "verified"], default: "unverified" },
+      status: {
+        type: String,
+        enum: ["unverified", "verified"],
+        default: "unverified",
+      },
       linkedBy: oid("User"),
     },
     { timestamps: true },
@@ -70,7 +88,17 @@ const ConsentLog = mongoose.model(
     {
       tenantId: oid("Tenant", true),
       userId: oid("User", true),
-      purpose: { type: String, enum: ["whatsapp", "data_sharing", "ai_scribe", "marketing", "deletion_request"], required: true },
+      purpose: {
+        type: String,
+        enum: [
+          "whatsapp",
+          "data_sharing",
+          "ai_scribe",
+          "marketing",
+          "deletion_request",
+        ],
+        required: true,
+      },
       granted: { type: Boolean, required: true },
       ip: String,
       at: { type: Date, default: Date.now },

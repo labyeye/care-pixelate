@@ -1,22 +1,46 @@
+import { writePrintDocument } from "./printWindow";
 // Printable booking receipt for an appointment. Same bordered look as the invoice PDF; opened in a print
 // window so "Save as PDF" gives the file. Used by the clinic (Appointments page) and the patient portal.
 import { escapeHtml as esc } from "./escapeHtml";
 import type { Appointment, Doctor, Patient, Tenant } from "@/types";
 
-const obj = <T,>(v: unknown): T | undefined => (v && typeof v === "object" ? (v as T) : undefined);
-const inr = (n: number) => "Rs. " + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const obj = <T>(v: unknown): T | undefined =>
+  v && typeof v === "object" ? (v as T) : undefined;
+const inr = (n: number) =>
+  "Rs. " +
+  Number(n || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 const when = (v: string) => ({
-  date: new Date(v).toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short", year: "numeric" }),
-  time: new Date(v).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+  date: new Date(v).toLocaleDateString("en-IN", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }),
+  time: new Date(v).toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }),
 });
 
 /** Stable receipt number derived from the booking (no extra field to store): BKG-20260115-A1B2C. */
-export const receiptNumber = (a: Pick<Appointment, "_id" | "createdAt" | "scheduledAt">) =>
+export const receiptNumber = (
+  a: Pick<Appointment, "_id" | "createdAt" | "scheduledAt">,
+) =>
   `BKG-${new Date(a.createdAt ?? a.scheduledAt).toISOString().slice(0, 10).replace(/-/g, "")}-${a._id.slice(-5).toUpperCase()}`;
 
-type WithPayment = Appointment & { paymentStatus?: "unpaid" | "paid" | "waived"; payment?: { gateway?: string; paymentId?: string; paidAt?: string } };
+type WithPayment = Appointment & {
+  paymentStatus?: "unpaid" | "paid" | "waived";
+  payment?: { gateway?: string; paymentId?: string; paidAt?: string };
+};
 
-export function buildReceiptHTML(appt: Appointment, tenant: Tenant | null, patientFallback?: Patient): string {
+export function buildReceiptHTML(
+  appt: Appointment,
+  tenant: Tenant | null,
+  patientFallback?: Patient,
+): string {
   const a = appt as WithPayment;
   const patient = obj<Patient>(a.patientId) ?? patientFallback;
   const doctor = obj<Doctor>(a.doctorId);
@@ -25,11 +49,35 @@ export function buildReceiptHTML(appt: Appointment, tenant: Tenant | null, patie
   const status = a.paymentStatus ?? "unpaid";
 
   const clinic = esc(tenant?.gstDetails?.legalName || tenant?.name || "Clinic");
-  const address = [tenant?.contact?.address, tenant?.contact?.city, tenant?.contact?.state, tenant?.contact?.pincode].filter(Boolean).map(esc).join(", ");
-  const contact = [tenant?.contact?.phone, tenant?.contact?.email].filter(Boolean).map(esc).join(" &nbsp;|&nbsp; ");
-  const logo = tenant?.branding?.logoUrl && /^(data:image\/(png|jpeg|webp);base64,|https:\/\/)/.test(tenant.branding.logoUrl) ? tenant.branding.logoUrl : "";
-  const speciality = (doctor?.professionalDetails?.specializations ?? []).join(", ");
-  const mode = a.type === "video" ? "Video consultation" : a.type === "walk_in" ? "Walk-in" : "In-clinic visit";
+  const address = [
+    tenant?.contact?.address,
+    tenant?.contact?.city,
+    tenant?.contact?.state,
+    tenant?.contact?.pincode,
+  ]
+    .filter(Boolean)
+    .map(esc)
+    .join(", ");
+  const contact = [tenant?.contact?.phone, tenant?.contact?.email]
+    .filter(Boolean)
+    .map(esc)
+    .join(" &nbsp;|&nbsp; ");
+  const logo =
+    tenant?.branding?.logoUrl &&
+    /^(data:image\/(png|jpeg|webp);base64,|https:\/\/)/.test(
+      tenant.branding.logoUrl,
+    )
+      ? tenant.branding.logoUrl
+      : "";
+  const speciality = (doctor?.professionalDetails?.specializations ?? []).join(
+    ", ",
+  );
+  const mode =
+    a.type === "video"
+      ? "Video consultation"
+      : a.type === "walk_in"
+        ? "Walk-in"
+        : "In-clinic visit";
 
   const payNote =
     status === "paid"
@@ -37,10 +85,23 @@ export function buildReceiptHTML(appt: Appointment, tenant: Tenant | null, patie
       : status === "waived"
         ? "Consultation fee waived"
         : "Payable at the clinic";
-  const stamp = status === "paid" ? "PAID" : status === "waived" ? "WAIVED" : a.status === "cancelled" ? "CANCELLED" : "CONFIRMED";
-  const stampColor = a.status === "cancelled" ? "#b91c1c" : status === "unpaid" ? "#024BAB" : "#047857";
+  const stamp =
+    status === "paid"
+      ? "PAID"
+      : status === "waived"
+        ? "WAIVED"
+        : a.status === "cancelled"
+          ? "CANCELLED"
+          : "CONFIRMED";
+  const stampColor =
+    a.status === "cancelled"
+      ? "#b91c1c"
+      : status === "unpaid"
+        ? "#024BAB"
+        : "#047857";
 
-  const row = (k: string, v: string) => `<tr><td class="k">${k}</td><td class="v">${v}</td></tr>`;
+  const row = (k: string, v: string) =>
+    `<tr><td class="k">${k}</td><td class="v">${v}</td></tr>`;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"/><title>Booking receipt ${esc(receiptNumber(a))}</title>
@@ -137,11 +198,13 @@ export function buildReceiptHTML(appt: Appointment, tenant: Tenant | null, patie
 }
 
 /** Writes the receipt into a print window (Save as PDF from there). Returns false if the pop-up was blocked. */
-export function openAppointmentReceipt(appt: Appointment, tenant: Tenant | null, patientFallback?: Patient): boolean {
+export function openAppointmentReceipt(
+  appt: Appointment,
+  tenant: Tenant | null,
+  patientFallback?: Patient,
+): boolean {
   const w = window.open("", "_blank");
   if (!w) return false;
-  w.document.write(buildReceiptHTML(appt, tenant, patientFallback));
-  w.document.close();
-  setTimeout(() => w.print(), 400);
+  writePrintDocument(w, buildReceiptHTML(appt, tenant, patientFallback), true);
   return true;
 }

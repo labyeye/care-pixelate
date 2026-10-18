@@ -7,7 +7,9 @@ async function sendWhatsAppOtp(phone, code) {
   if (!token || !phoneNumberId) {
     throw new Error("WhatsApp platform number is not configured");
   }
-  const components = [{ type: "body", parameters: [{ type: "text", text: code }] }];
+  const components = [
+    { type: "body", parameters: [{ type: "text", text: code }] },
+  ];
   if (process.env.WHATSAPP_OTP_HAS_BUTTON !== "false") {
     components.push({
       type: "button",
@@ -16,20 +18,26 @@ async function sendWhatsAppOtp(phone, code) {
       parameters: [{ type: "text", text: code }],
     });
   }
-  const res = await fetch(`https://graph.facebook.com/v20.0/${phoneNumberId}/messages`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to: phone,
-      type: "template",
-      template: {
-        name: process.env.WHATSAPP_OTP_TEMPLATE_NAME || "user_otp",
-        language: { code: process.env.WHATSAPP_OTP_TEMPLATE_LANG || "en_US" },
-        components,
+  const res = await fetch(
+    `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    }),
-  });
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: phone,
+        type: "template",
+        template: {
+          name: process.env.WHATSAPP_OTP_TEMPLATE_NAME || "user_otp",
+          language: { code: process.env.WHATSAPP_OTP_TEMPLATE_LANG || "en_US" },
+          components,
+        },
+      }),
+    },
+  );
   const data = await res.json();
   if (!res.ok) throw new Error(data?.error?.message || "WhatsApp API error");
 }

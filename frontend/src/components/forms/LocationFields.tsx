@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { Field, inputCls } from "@/components/forms/WizardModal";
-import { FALLBACK_COUNTRIES, getCities, getCountries, getStates, lookupPincode } from "@/lib/lookups";
+import {
+  FALLBACK_COUNTRIES,
+  getCities,
+  getCountries,
+  getStates,
+  lookupPincode,
+} from "@/lib/lookups";
 
 export interface Location {
   state: string;
@@ -44,13 +50,24 @@ function Picker({
 }) {
   if (options && options.length === 0) {
     return (
-      <input className={inputCls} value={value} placeholder={placeholder} disabled={disabled} onChange={(e) => onChange(e.target.value)} />
+      <input
+        className={inputCls}
+        value={value}
+        placeholder={placeholder}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+      />
     );
   }
   const opts = options ?? [];
   const withCurrent = value && !opts.includes(value) ? [value, ...opts] : opts;
   return (
-    <select className={inputCls} value={value} disabled={disabled || options === null} onChange={(e) => onChange(e.target.value)}>
+    <select
+      className={inputCls}
+      value={value}
+      disabled={disabled || options === null}
+      onChange={(e) => onChange(e.target.value)}
+    >
       <option value="">{options === null ? "Loading…" : placeholder}</option>
       {withCurrent.map((o) => (
         <option key={o} value={o}>
@@ -76,9 +93,22 @@ export function LocationFields({
 }) {
   const [hint, setHint] = useState("");
   const countries = useList(getCountries, []);
-  const states = useList(value.country ? () => getStates(value.country) : null, [value.country]);
-  const cities = useList(value.country && value.state ? () => getCities(value.country, value.state) : null, [value.country, value.state]);
-  const countryOpts = countries && countries.length ? countries : countries === null ? null : FALLBACK_COUNTRIES;
+  const states = useList(
+    value.country ? () => getStates(value.country) : null,
+    [value.country],
+  );
+  const cities = useList(
+    value.country && value.state
+      ? () => getCities(value.country, value.state)
+      : null,
+    [value.country, value.state],
+  );
+  const countryOpts =
+    countries && countries.length
+      ? countries
+      : countries === null
+        ? null
+        : FALLBACK_COUNTRIES;
 
   const onPin = async (raw: string) => {
     const pin = raw.replace(/\D/g, "").slice(0, 6);
@@ -99,13 +129,31 @@ export function LocationFields({
     <div className="col-span-2">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Field label="State">
-          <Picker value={value.state} options={states} placeholder="Select state" onChange={(state) => onChange({ state, city: "" })} />
+          <Picker
+            value={value.state}
+            options={states}
+            placeholder="Select state"
+            onChange={(state) => onChange({ state, city: "" })}
+          />
         </Field>
         <Field label="City">
-          <Picker value={value.city} options={cities} placeholder={value.state ? "Select city" : "Select state first"} disabled={!value.state} onChange={(city) => onChange({ city })} />
+          <Picker
+            value={value.city}
+            options={cities}
+            placeholder={value.state ? "Select city" : "Select state first"}
+            disabled={!value.state}
+            onChange={(city) => onChange({ city })}
+          />
         </Field>
         <Field label="Pincode" error={pincodeError}>
-          <input className={inputCls} inputMode="numeric" maxLength={6} value={value.pincode} placeholder="400001" onChange={(e) => onPin(e.target.value)} />
+          <input
+            className={inputCls}
+            inputMode="numeric"
+            maxLength={6}
+            value={value.pincode}
+            placeholder="400001"
+            onChange={(e) => onPin(e.target.value)}
+          />
         </Field>
         <Field label="Country">
           <Picker
@@ -116,7 +164,11 @@ export function LocationFields({
           />
         </Field>
       </div>
-      {hint && <p className="mt-1 text-xs font-medium text-muted-foreground">Pincode matched: {hint}</p>}
+      {hint && (
+        <p className="mt-1 text-xs font-medium text-muted-foreground">
+          Pincode matched: {hint}
+        </p>
+      )}
     </div>
   );
 }

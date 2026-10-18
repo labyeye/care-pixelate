@@ -46,7 +46,13 @@ export default function RegisterPatientScreen({ navigation }: any) {
   };
 
   const handleSubmit = async () => {
-    if (!clinicCode.trim() || !name.trim() || !email.trim() || !phone.trim() || !password) {
+    if (
+      !clinicCode.trim() ||
+      !name.trim() ||
+      !email.trim() ||
+      !phone.trim() ||
+      !password
+    ) {
       setError('Please fill in every field.');
       return;
     }
@@ -54,7 +60,11 @@ export default function RegisterPatientScreen({ navigation }: any) {
       setError('Enter your first and last name.');
       return;
     }
-    if (!/^d{4}-d{2}-d{2}$/.test(dob) || isNaN(new Date(dob).getTime()) || new Date(dob) > new Date()) {
+    if (
+      !/^d{4}-d{2}-d{2}$/.test(dob) ||
+      isNaN(new Date(dob).getTime()) ||
+      new Date(dob) > new Date()
+    ) {
       setError('Enter your date of birth as YYYY-MM-DD.');
       return;
     }
@@ -96,20 +106,64 @@ export default function RegisterPatientScreen({ navigation }: any) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <Header title="Join Your Clinic" onBack={() => navigation.goBack()} />
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
         {!!error && (
           <View style={[styles.errorBox, { borderColor: colors.destructive }]}>
             <AlertCircle size={16} color={colors.destructive} />
-            <Text style={[styles.errorText, { color: colors.destructive }]}>{error}</Text>
+            <Text style={[styles.errorText, { color: colors.destructive }]}>
+              {error}
+            </Text>
           </View>
         )}
 
-        <Field label="Clinic Code" value={clinicCode} onChangeText={setClinicCode} onBlur={checkClinic} placeholder="sunrise-clinic-a1b2c3" colors={colors} />
-        {!!clinicName && <Text style={[styles.ok, { color: colors.success }]}>✓ {clinicName}</Text>}
-        <Field label="Your Name" value={name} onChangeText={setName} placeholder="Rahul Sharma" autoCapitalize="words" colors={colors} />
-        <Field label="Email" value={email} onChangeText={setEmail} placeholder="you@example.com" keyboardType="email-address" colors={colors} />
-        <Field label="Mobile" value={phone} onChangeText={setPhone} placeholder="98765 43210" keyboardType="phone-pad" colors={colors} />
-        <Field label="Date of Birth" value={dob} onChangeText={setDob} placeholder="YYYY-MM-DD" keyboardType="numbers-and-punctuation" colors={colors} />
+        <Field
+          label="Clinic Code"
+          value={clinicCode}
+          onChangeText={setClinicCode}
+          onBlur={checkClinic}
+          placeholder="sunrise-clinic-a1b2c3"
+          colors={colors}
+        />
+        {!!clinicName && (
+          <Text style={[styles.ok, { color: colors.success }]}>
+            ✓ {clinicName}
+          </Text>
+        )}
+        <Field
+          label="Your Name"
+          value={name}
+          onChangeText={setName}
+          placeholder="Rahul Sharma"
+          autoCapitalize="words"
+          colors={colors}
+        />
+        <Field
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          placeholder="you@example.com"
+          keyboardType="email-address"
+          colors={colors}
+        />
+        <Field
+          label="Mobile"
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="98765 43210"
+          keyboardType="phone-pad"
+          colors={colors}
+        />
+        <Field
+          label="Date of Birth"
+          value={dob}
+          onChangeText={setDob}
+          placeholder="YYYY-MM-DD"
+          keyboardType="numbers-and-punctuation"
+          colors={colors}
+        />
         <View style={styles.fieldGroup}>
           <Text style={[styles.label, { color: colors.text }]}>Gender</Text>
           <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -117,29 +171,74 @@ export default function RegisterPatientScreen({ navigation }: any) {
               <TouchableOpacity
                 key={g}
                 onPress={() => setGender(g)}
-                style={[styles.chip, { borderColor: colors.border }, gender === g && { backgroundColor: colors.primary }]}
+                style={[
+                  styles.chip,
+                  { borderColor: colors.border },
+                  gender === g && { backgroundColor: colors.primary },
+                ]}
               >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: gender === g ? colors.white : colors.text }}>{g}</Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: gender === g ? colors.white : colors.text,
+                  }}
+                >
+                  {g}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
-        <Field label="Password" value={password} onChangeText={setPassword} placeholder="Min 8 chars, Aa + number" secureTextEntry colors={colors} />
-        <Field label="Confirm Password" value={confirm} onChangeText={setConfirm} placeholder="Re-enter password" secureTextEntry colors={colors} />
+        <Field
+          label="Password"
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Min 8 chars, Aa + number"
+          secureTextEntry
+          colors={colors}
+        />
+        <Field
+          label="Confirm Password"
+          value={confirm}
+          onChangeText={setConfirm}
+          placeholder="Re-enter password"
+          secureTextEntry
+          colors={colors}
+        />
 
-        <TouchableOpacity onPress={() => setAccepted(a => !a)} style={styles.consentRow}>
-          <View style={[styles.checkbox, { borderColor: colors.border }, accepted && { backgroundColor: colors.primary }]} />
+        <TouchableOpacity
+          onPress={() => setAccepted(a => !a)}
+          style={styles.consentRow}
+        >
+          <View
+            style={[
+              styles.checkbox,
+              { borderColor: colors.border },
+              accepted && { backgroundColor: colors.primary },
+            ]}
+          />
           <Text style={[styles.consentText, { color: colors.text }]}>
-            I agree to the Terms of Service and Privacy Policy, and consent to my health data being stored by my clinic.
+            I agree to the Terms of Service and Privacy Policy, and consent to
+            my health data being stored by my clinic.
           </Text>
         </TouchableOpacity>
 
-        <Button title="Create Account" onPress={handleSubmit} loading={loading} style={styles.submitBtn} />
+        <Button
+          title="Create Account"
+          onPress={handleSubmit}
+          loading={loading}
+          style={styles.submitBtn}
+        />
 
         <View style={styles.footerRow}>
-          <Text style={[styles.footerText, { color: colors.mutedText }]}>Already have an account? </Text>
+          <Text style={[styles.footerText, { color: colors.mutedText }]}>
+            Already have an account?{' '}
+          </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={[styles.footerLink, { color: colors.primary }]}>Sign In</Text>
+            <Text style={[styles.footerLink, { color: colors.primary }]}>
+              Sign In
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -151,7 +250,12 @@ function Field({ label, colors, ...props }: any) {
   return (
     <View style={styles.fieldGroup}>
       <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
-      <View style={[styles.inputBorder, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+      <View
+        style={[
+          styles.inputBorder,
+          { borderColor: colors.border, backgroundColor: colors.surface },
+        ]}
+      >
         <TextInput
           style={[styles.input, { color: colors.text }]}
           placeholderTextColor={colors.mutedText}
@@ -166,19 +270,47 @@ function Field({ label, colors, ...props }: any) {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { padding: 20 },
-  errorBox: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 2, borderRadius: 8, padding: 10, marginBottom: 16 },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 2,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 16,
+  },
   errorText: { fontSize: 12, fontWeight: '700', flex: 1 },
   ok: { fontSize: 12, fontWeight: '800', marginTop: -8, marginBottom: 14 },
   fieldGroup: { marginBottom: 16 },
-  label: { fontSize: 12, fontWeight: '800', textTransform: 'uppercase', marginBottom: 6, letterSpacing: 0.3 },
+  label: {
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    marginBottom: 6,
+    letterSpacing: 0.3,
+  },
   inputBorder: { borderWidth: 2, borderRadius: 8, paddingHorizontal: 12 },
   input: { height: 46, fontSize: 14, fontWeight: '600' },
-  chip: { borderWidth: 2, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8 },
-  consentRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
+  chip: {
+    borderWidth: 2,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  consentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 8,
+  },
   checkbox: { width: 20, height: 20, borderWidth: 2 },
   consentText: { fontSize: 12, fontWeight: '600', flex: 1, lineHeight: 17 },
   submitBtn: { marginTop: 8, marginBottom: 20 },
-  footerRow: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20 },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
   footerText: { fontSize: 13, fontWeight: '500' },
   footerLink: { fontSize: 13, fontWeight: '800' },
 });

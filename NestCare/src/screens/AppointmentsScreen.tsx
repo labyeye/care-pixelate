@@ -50,11 +50,20 @@ export default function AppointmentsScreen({ navigation }: any) {
   }, [navigation, fetchData]);
 
   return (
-    <View style={[styles.wrap, { backgroundColor: colors.background, paddingTop: insets.top + 10 }]}>
+    <View
+      style={[
+        styles.wrap,
+        { backgroundColor: colors.background, paddingTop: insets.top + 10 },
+      ]}
+    >
       <View style={styles.headerRow}>
         <Text style={[styles.title, { color: colors.text }]}>Appointments</Text>
         <TouchableOpacity
-          style={[styles.addBtn, { borderColor: colors.border, backgroundColor: colors.primary }, nbShadow]}
+          style={[
+            styles.addBtn,
+            { borderColor: colors.border, backgroundColor: colors.primary },
+            nbShadow,
+          ]}
           onPress={() => navigation.navigate('BookAppointment')}
         >
           <Plus size={20} color={colors.white} />
@@ -69,19 +78,41 @@ export default function AppointmentsScreen({ navigation }: any) {
         <FlatList
           data={appointments}
           keyExtractor={item => item._id}
-          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 24 }]}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchData(true)} tintColor={colors.primary} />}
+          contentContainerStyle={[
+            styles.list,
+            { paddingBottom: insets.bottom + 24 },
+          ]}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => fetchData(true)}
+              tintColor={colors.primary}
+            />
+          }
           ListEmptyComponent={
-            <EmptyState icon={CalendarClock} title="No appointments yet" subtitle="Book your first appointment to see it here." />
+            <EmptyState
+              icon={CalendarClock}
+              title="No appointments yet"
+              subtitle="Book your first appointment to see it here."
+            />
           }
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => navigation.navigate('AppointmentDetail', { appointmentId: item._id })}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('AppointmentDetail', {
+                  appointmentId: item._id,
+                })
+              }
+            >
               <Card style={styles.card}>
                 <View style={styles.cardRow}>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.doctor, { color: colors.text }]}>{item.doctorId?.name || 'Doctor'}</Text>
+                    <Text style={[styles.doctor, { color: colors.text }]}>
+                      {item.doctorId?.name || 'Doctor'}
+                    </Text>
                     <Text style={[styles.spec, { color: colors.mutedText }]}>
-                      {(item.doctorId?.professionalDetails?.specializations || [])[0] || 'General'}
+                      {(item.doctorId?.professionalDetails?.specializations ||
+                        [])[0] || 'General'}
                     </Text>
                     <Text style={[styles.date, { color: colors.primary }]}>
                       {new Date(item.scheduledAt).toLocaleString('en-IN', {
@@ -93,7 +124,10 @@ export default function AppointmentsScreen({ navigation }: any) {
                       })}
                     </Text>
                   </View>
-                  <Badge label={item.status} tone={statusTone[item.status] || 'muted'} />
+                  <Badge
+                    label={item.status}
+                    tone={statusTone[item.status] || 'muted'}
+                  />
                 </View>
               </Card>
             </TouchableOpacity>
@@ -114,7 +148,14 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
   },
   title: { fontSize: 22, fontWeight: '900' },
-  addBtn: { width: 42, height: 42, borderWidth: 2, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  addBtn: {
+    width: 42,
+    height: 42,
+    borderWidth: 2,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { paddingHorizontal: 16, gap: 12 },
   card: { marginBottom: 4 },

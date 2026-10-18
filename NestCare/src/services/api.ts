@@ -62,10 +62,13 @@ export async function request<T>(
 // native clients since they can't hold the httpOnly cookie the web app uses.
 export const authAPI = {
   login: (email: string, password: string) =>
-    request<{ success: boolean; data: { user: any; tenant: any; token: string } }>(
-      '/auth/login',
-      { method: 'POST', body: JSON.stringify({ email, password }) },
-    ),
+    request<{
+      success: boolean;
+      data: { user: any; tenant: any; token: string };
+    }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
   registerTenant: (payload: {
     orgName: string;
     orgType: string;
@@ -79,10 +82,13 @@ export const authAPI = {
     password: string;
     acceptTerms: boolean;
   }) =>
-    request<{ success: boolean; data: { user: any; tenant: any; token: string } }>(
-      '/auth/register-tenant',
-      { method: 'POST', body: JSON.stringify(payload) },
-    ),
+    request<{
+      success: boolean;
+      data: { user: any; tenant: any; token: string };
+    }>('/auth/register-tenant', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   registerPatient: (payload: {
     clinicCode: string;
     name: string;
@@ -93,15 +99,23 @@ export const authAPI = {
     password: string;
     acceptTerms: boolean;
   }) =>
-    request<{ success: boolean; data: { user: any; tenant: any; token: string } }>(
-      '/auth/register-patient',
-      { method: 'POST', body: JSON.stringify(payload) },
-    ),
+    request<{
+      success: boolean;
+      data: { user: any; tenant: any; token: string };
+    }>('/auth/register-patient', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
   clinicLookup: (slug: string) =>
-    request<{ success: boolean; data: { name: string } }>(`/auth/clinic/${encodeURIComponent(slug)}`),
+    request<{ success: boolean; data: { name: string } }>(
+      `/auth/clinic/${encodeURIComponent(slug)}`,
+    ),
   getMe: () =>
     request<{ success: boolean; data: { user: any; tenant: any } }>('/auth/me'),
-  logout: () => request<{ success: boolean; data: any }>('/auth/logout', { method: 'POST' }),
+  logout: () =>
+    request<{ success: boolean; data: any }>('/auth/logout', {
+      method: 'POST',
+    }),
 };
 
 // Patient accounts use the self-service /me/* routes; clinic staff keep the tenant-wide ones.
@@ -125,9 +139,14 @@ async function findIn(path: string, id: string): Promise<OneRes> {
 }
 
 export const appointmentsAPI = {
-  getAll: async () => request<ListRes>((await isPatient()) ? '/me/appointments' : '/appointments'),
+  getAll: async () =>
+    request<ListRes>(
+      (await isPatient()) ? '/me/appointments' : '/appointments',
+    ),
   getOne: async (id: string) =>
-    (await isPatient()) ? findIn('/me/appointments', id) : request<OneRes>(`/appointments/${id}`),
+    (await isPatient())
+      ? findIn('/me/appointments', id)
+      : request<OneRes>(`/appointments/${id}`),
   create: async (data: {
     patientId: string;
     doctorId: string;
@@ -135,23 +154,33 @@ export const appointmentsAPI = {
     reason?: string;
     notes?: string;
   }) =>
-    request<OneRes>((await isPatient()) ? '/me/appointments' : '/appointments', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
+    request<OneRes>(
+      (await isPatient()) ? '/me/appointments' : '/appointments',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+    ),
   cancel: (id: string, reason?: string) =>
-    request<OneRes>(`/me/appointments/${id}/cancel`, { method: 'POST', body: JSON.stringify({ reason }) }),
+    request<OneRes>(`/me/appointments/${id}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
 };
 
 export const doctorsAPI = {
-  getAll: async () => request<ListRes>((await isPatient()) ? '/me/doctors' : '/doctors'),
+  getAll: async () =>
+    request<ListRes>((await isPatient()) ? '/me/doctors' : '/doctors'),
   getOne: async (id: string) =>
-    (await isPatient()) ? findIn('/me/doctors', id) : request<OneRes>(`/doctors/${id}`),
+    (await isPatient())
+      ? findIn('/me/doctors', id)
+      : request<OneRes>(`/doctors/${id}`),
 };
 
 // Patient accounts: their own + family profiles. Staff: the tenant's patient list.
 export const patientsAPI = {
-  getAll: async () => request<ListRes>((await isPatient()) ? '/me/profiles' : '/patients'),
+  getAll: async () =>
+    request<ListRes>((await isPatient()) ? '/me/profiles' : '/patients'),
 };
 
 export const slotsAPI = {
@@ -164,18 +193,33 @@ export const slotsAPI = {
 export const meAPI = {
   prescriptions: () => request<ListRes>('/me/prescriptions'),
   vitals: () => request<ListRes>('/me/vitals'),
-  addVital: (d: { type: string; value: number; value2?: number; unit?: string }) =>
+  addVital: (d: {
+    type: string;
+    value: number;
+    value2?: number;
+    unit?: string;
+  }) =>
     request<OneRes>('/me/vitals', { method: 'POST', body: JSON.stringify(d) }),
   reminders: () => request<ListRes>('/me/reminders'),
   addReminder: (d: { drug: string; times: string[]; dose?: string }) =>
-    request<OneRes>('/me/reminders', { method: 'POST', body: JSON.stringify(d) }),
+    request<OneRes>('/me/reminders', {
+      method: 'POST',
+      body: JSON.stringify(d),
+    }),
   updateReminder: (id: string, d: { active?: boolean; times?: string[] }) =>
-    request<OneRes>(`/me/reminders/${id}`, { method: 'PUT', body: JSON.stringify(d) }),
-  deleteReminder: (id: string) => request<OneRes>(`/me/reminders/${id}`, { method: 'DELETE' }),
-  deleteVital: (id: string) => request<OneRes>(`/me/vitals/${id}`, { method: 'DELETE' }),
+    request<OneRes>(`/me/reminders/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(d),
+    }),
+  deleteReminder: (id: string) =>
+    request<OneRes>(`/me/reminders/${id}`, { method: 'DELETE' }),
+  deleteVital: (id: string) =>
+    request<OneRes>(`/me/vitals/${id}`, { method: 'DELETE' }),
   records: () => request<ListRes>('/me/records'),
   invoices: () => request<ListRes>('/me/invoices'),
   labOrders: () => request<ListRes>('/me/lab-orders'),
   videoLink: (appointmentId: string) =>
-    request<{ success: boolean; data: { url: string } }>(`/me/appointments/${appointmentId}/video-link`),
+    request<{ success: boolean; data: { url: string } }>(
+      `/me/appointments/${appointmentId}/video-link`,
+    ),
 };

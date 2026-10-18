@@ -15,7 +15,8 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) return setError("Password must be at least 8 characters");
+    if (password.length < 8)
+      return setError("Password must be at least 8 characters");
     if (password !== confirm) return setError("Passwords do not match");
     setError("");
     setLoading(true);
@@ -24,7 +25,11 @@ export default function ResetPasswordPage() {
       toast.success("Password reset. Please sign in.");
       navigate("/login");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Something went wrong. Try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -32,7 +37,9 @@ export default function ResetPasswordPage() {
 
   const field = (label: string, value: string, set: (v: string) => void) => (
     <div>
-      <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1.5">{label}</label>
+      <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1.5">
+        {label}
+      </label>
       <input
         type="password"
         value={value}
@@ -50,9 +57,17 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <img src={logoLong} alt="NestCare" className="h-12 object-contain mb-8" />
-        <h2 className="text-2xl font-display font-bold text-black mb-1">Set a new password</h2>
-        <p className="text-sm text-gray-500 font-medium mb-8">Choose at least 8 characters.</p>
+        <img
+          src={logoLong}
+          alt="NestCare"
+          className="h-12 object-contain mb-8"
+        />
+        <h2 className="text-2xl font-display font-bold text-black mb-1">
+          Set a new password
+        </h2>
+        <p className="text-sm text-gray-500 font-medium mb-8">
+          Choose at least 8 characters.
+        </p>
         {error && (
           <div className="bg-red-50 border-2 border-red-400 text-red-600 text-sm px-3 py-2.5 mb-5 font-medium">
             {error}
@@ -66,10 +81,19 @@ export default function ResetPasswordPage() {
             disabled={loading}
             className="w-full bg-[#024BAB] text-white py-3.5 text-sm font-bold border-2 border-black hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#0a0a0a] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {loading ? "Please wait..." : <>Reset password <ArrowRight className="w-4 h-4" /></>}
+            {loading ? (
+              "Please wait..."
+            ) : (
+              <>
+                Reset password <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
-        <Link to="/login" className="block text-center mt-6 text-xs font-bold text-gray-500 hover:text-black">
+        <Link
+          to="/login"
+          className="block text-center mt-6 text-xs font-bold text-gray-500 hover:text-black"
+        >
           ← Back to login
         </Link>
       </div>

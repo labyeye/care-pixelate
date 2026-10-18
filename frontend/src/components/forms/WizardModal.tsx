@@ -70,7 +70,8 @@ export function PhotoField({
     const f = e.target.files?.[0];
     e.target.value = "";
     if (!f) return;
-    if (!f.type.startsWith("image/")) return onError("Please choose an image file");
+    if (!f.type.startsWith("image/"))
+      return onError("Please choose an image file");
     if (f.size > 10 * 1024 * 1024) return onError("Image must be under 10MB");
     try {
       onChange(await toThumb(f));
@@ -84,9 +85,15 @@ export function PhotoField({
       <div className="relative shrink-0">
         <div className="flex h-20 w-20 items-center justify-center overflow-hidden border-2 border-black bg-[#024BAB]">
           {value ? (
-            <img src={value} alt="Preview" className="h-full w-full object-cover" />
+            <img
+              src={value}
+              alt="Preview"
+              className="h-full w-full object-cover"
+            />
           ) : (
-            <span className="text-2xl font-bold text-white">{initial?.[0]?.toUpperCase() || "?"}</span>
+            <span className="text-2xl font-bold text-white">
+              {initial?.[0]?.toUpperCase() || "?"}
+            </span>
           )}
         </div>
         <button
@@ -97,11 +104,21 @@ export function PhotoField({
         >
           <Upload className="h-3.5 w-3.5 text-white" />
         </button>
-        <input ref={ref} type="file" accept="image/*" onChange={pick} className="hidden" />
+        <input
+          ref={ref}
+          type="file"
+          accept="image/*"
+          onChange={pick}
+          className="hidden"
+        />
       </div>
       <div className="flex-1">
-        <p className="mb-1 text-xs font-bold uppercase tracking-wider text-black">Profile Photo</p>
-        <p className="text-xs text-muted-foreground">Click the upload icon. PNG or JPG — resized automatically.</p>
+        <p className="mb-1 text-xs font-bold uppercase tracking-wider text-black">
+          Profile Photo
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Click the upload icon. PNG or JPG — resized automatically.
+        </p>
         {value && (
           <button
             type="button"
@@ -161,7 +178,11 @@ export function WizardModal({
         <div className="flex items-center justify-between border-b-2 border-black bg-[#024BAB] px-6 py-4">
           <div className="flex items-center gap-3">
             {avatar ? (
-              <img src={avatar} alt="avatar" className="h-10 w-10 rounded-full border-2 border-white object-cover" />
+              <img
+                src={avatar}
+                alt="avatar"
+                className="h-10 w-10 rounded-full border-2 border-white object-cover"
+              />
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-white/20 font-bold text-white">
                 {avatarFallback?.[0]?.toUpperCase() || "?"}
@@ -172,7 +193,11 @@ export function WizardModal({
               {subtitle && <p className="text-xs text-white/70">{subtitle}</p>}
             </div>
           </div>
-          <button onClick={onClose} aria-label="Close" className="p-1 text-white hover:text-white/70">
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="p-1 text-white hover:text-white/70"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -185,13 +210,17 @@ export function WizardModal({
               onClick={() => onTab(idx)}
               className={cn(
                 "flex-1 border-r-2 border-black py-3 text-xs font-bold uppercase tracking-wider transition-colors last:border-r-0",
-                tab === idx ? "bg-[#024BAB] text-white" : "bg-white text-black hover:bg-[#024BAB]/5",
+                tab === idx
+                  ? "bg-[#024BAB] text-white"
+                  : "bg-white text-black hover:bg-[#024BAB]/5",
               )}
             >
               <span
                 className={cn(
                   "mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold",
-                  tab === idx ? "bg-white text-[#024BAB]" : "bg-black/10 text-black",
+                  tab === idx
+                    ? "bg-white text-[#024BAB]"
+                    : "bg-black/10 text-black",
                 )}
               >
                 {idx + 1}
@@ -242,7 +271,8 @@ export function WizardModal({
             <button
               type="button"
               onClick={() => {
-                if (!onNext || onNext(tab)) onTab(Math.min(tabs.length - 1, tab + 1));
+                if (!onNext || onNext(tab))
+                  onTab(Math.min(tabs.length - 1, tab + 1));
               }}
               className="flex items-center gap-2 border-2 border-black bg-[#024BAB] px-4 py-2 text-sm font-bold text-white hover:bg-[#01368A]"
             >

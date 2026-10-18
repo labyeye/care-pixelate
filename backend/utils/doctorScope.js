@@ -9,7 +9,10 @@ const NONE = new mongoose.Types.ObjectId("000000000000000000000000");
 async function resolveOwnDoctor(req) {
   if (req.user?.role !== "doctor") return undefined;
   const Doctor = require("../models/Doctor");
-  const d = await Doctor.findOne({ userId: req.user._id, tenantId: req.user.tenantId }).select("_id");
+  const d = await Doctor.findOne({
+    userId: req.user._id,
+    tenantId: req.user.tenantId,
+  }).select("_id");
   return d ? d._id : NONE;
 }
 
@@ -26,8 +29,14 @@ async function patientScope(req) {
   const Consultation = require("../models/Consultation");
   const LabOrder = require("../models/LabOrder");
   const f = { tenantId: req.user.tenantId, doctorId: req.ownDoctorId };
-  const lists = await Promise.all([Appointment, Consultation, LabOrder].map((M) => M.distinct("patientId", f)));
-  return { $or: [{ _id: { $in: lists.flat() } }, { registeredBy: req.user._id }] };
+  const lists = await Promise.all(
+    [Appointment, Consultation, LabOrder].map((M) =>
+      M.distinct("patientId", f),
+    ),
+  );
+  return {
+    $or: [{ _id: { $in: lists.flat() } }, { registeredBy: req.user._id }],
+  };
 }
 
 module.exports = { resolveOwnDoctor, own, patientScope, NONE };

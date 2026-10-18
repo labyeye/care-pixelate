@@ -6,7 +6,12 @@ import { inputCls } from "@/components/forms/WizardModal";
 type Search = (q: string) => Promise<string[]>;
 
 /** Filters `presets` locally and (optionally) merges async internet results. */
-function useOptions(query: string, presets: string[], search?: Search, exclude: string[] = []) {
+function useOptions(
+  query: string,
+  presets: string[],
+  search?: Search,
+  exclude: string[] = [],
+) {
   const [remote, setRemote] = useState<string[]>([]);
 
   useEffect(() => {
@@ -16,7 +21,9 @@ function useOptions(query: string, presets: string[], search?: Search, exclude: 
     }
     let live = true;
     const t = setTimeout(() => {
-      search(query.trim()).then((r) => live && setRemote(r)).catch(() => live && setRemote([]));
+      search(query.trim())
+        .then((r) => live && setRemote(r))
+        .catch(() => live && setRemote([]));
     }, 300);
     return () => {
       live = false;
@@ -27,8 +34,13 @@ function useOptions(query: string, presets: string[], search?: Search, exclude: 
   const q = query.trim().toLowerCase();
   const taken = new Set(exclude.map((x) => x.toLowerCase()));
   // starts-with matches first, then word-start, then anywhere (so "pen" ranks Penicillin above "Aspirin pen")
-  const rank = (p: string) => { const l = p.toLowerCase(); return l.startsWith(q) ? 0 : l.includes(" " + q) ? 1 : 2; };
-  const local = presets.filter((p) => !q || p.toLowerCase().includes(q)).sort((a, b) => (q ? rank(a) - rank(b) : 0));
+  const rank = (p: string) => {
+    const l = p.toLowerCase();
+    return l.startsWith(q) ? 0 : l.includes(" " + q) ? 1 : 2;
+  };
+  const local = presets
+    .filter((p) => !q || p.toLowerCase().includes(q))
+    .sort((a, b) => (q ? rank(a) - rank(b) : 0));
   const seen = new Set<string>();
   return [...local, ...remote]
     .filter((o) => {
@@ -40,7 +52,15 @@ function useOptions(query: string, presets: string[], search?: Search, exclude: 
     .slice(0, 12);
 }
 
-function Dropdown({ options, onPick, active = -1 }: { options: string[]; onPick: (o: string) => void; active?: number }) {
+function Dropdown({
+  options,
+  onPick,
+  active = -1,
+}: {
+  options: string[];
+  onPick: (o: string) => void;
+  active?: number;
+}) {
   if (!options.length) return null;
   return (
     <ul className="absolute left-0 right-0 z-50 mt-1 max-h-48 overflow-auto border-2 border-black bg-white">
@@ -53,7 +73,10 @@ function Dropdown({ options, onPick, active = -1 }: { options: string[]; onPick:
               e.preventDefault();
               onPick(o);
             }}
-            className={cn("w-full px-3 py-2 text-left text-sm hover:bg-muted", i === active && "bg-muted font-bold")}
+            className={cn(
+              "w-full px-3 py-2 text-left text-sm hover:bg-muted",
+              i === active && "bg-muted font-bold",
+            )}
           >
             {o}
           </button>
@@ -83,7 +106,13 @@ export function Suggest({
   const [focus, setFocus] = useState(false);
   const [active, setActive] = useState(-1);
   const options = useOptions(value, presets, search);
-  const show = focus && options.length > 0 && !(options.length === 1 && options[0].toLowerCase() === value.trim().toLowerCase());
+  const show =
+    focus &&
+    options.length > 0 &&
+    !(
+      options.length === 1 &&
+      options[0].toLowerCase() === value.trim().toLowerCase()
+    );
   return (
     <div className="relative">
       <input
@@ -100,7 +129,9 @@ export function Suggest({
           if (e.key === "ArrowDown" || e.key === "ArrowUp") {
             e.preventDefault();
             const n = options.length;
-            setActive((a) => (e.key === "ArrowDown" ? (a + 1) % n : (a - 1 + n) % n));
+            setActive((a) =>
+              e.key === "ArrowDown" ? (a + 1) % n : (a - 1 + n) % n,
+            );
           } else if (e.key === "Enter" && active >= 0) {
             e.preventDefault();
             onChange(options[active]);
@@ -113,7 +144,16 @@ export function Suggest({
         onBlur={() => setFocus(false)}
         autoComplete="off"
       />
-      {show && <Dropdown options={options} active={active} onPick={(o) => { onChange(o); setFocus(false); }} />}
+      {show && (
+        <Dropdown
+          options={options}
+          active={active}
+          onPick={(o) => {
+            onChange(o);
+            setFocus(false);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -140,7 +180,8 @@ export function TagInput({
 
   const add = (raw: string) => {
     const v = raw.trim();
-    if (!v || values.some((x) => x.toLowerCase() === v.toLowerCase())) return setText("");
+    if (!v || values.some((x) => x.toLowerCase() === v.toLowerCase()))
+      return setText("");
     onChange([...values, v]);
     setText("");
   };
@@ -152,7 +193,10 @@ export function TagInput({
         className="flex min-h-[42px] cursor-text flex-wrap items-center gap-1.5 border-2 border-black bg-white px-2 py-1.5 focus-within:ring-2 focus-within:ring-[#024BAB]/30"
       >
         {values.map((v) => (
-          <span key={v} className="flex items-center gap-1 border-2 border-black bg-[#F0F6FF] px-2 py-0.5 text-xs font-bold">
+          <span
+            key={v}
+            className="flex items-center gap-1 border-2 border-black bg-[#F0F6FF] px-2 py-0.5 text-xs font-bold"
+          >
             {v}
             <button
               type="button"
@@ -181,7 +225,9 @@ export function TagInput({
               if (!options.length) return;
               e.preventDefault();
               const n = options.length;
-              setActive((a) => (e.key === "ArrowDown" ? (a + 1) % n : (a - 1 + n) % n));
+              setActive((a) =>
+                e.key === "ArrowDown" ? (a + 1) % n : (a - 1 + n) % n,
+              );
             } else if (e.key === "Enter") {
               e.preventDefault();
               add(active >= 0 && options[active] ? options[active] : text);
@@ -227,9 +273,23 @@ export function SuggestArea({
   const [active, setActive] = useState(-1);
   const cut = Math.max(value.lastIndexOf(","), value.lastIndexOf("\n"));
   const current = value.slice(cut + 1).trim();
-  const done = value.split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
-  const options = useOptions(current, presets, undefined, done.filter((x) => x.toLowerCase() !== current.toLowerCase()));
-  const show = focus && current.length >= 1 && options.length > 0 && !(options.length === 1 && options[0].toLowerCase() === current.toLowerCase());
+  const done = value
+    .split(/[,\n]/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+  const options = useOptions(
+    current,
+    presets,
+    undefined,
+    done.filter((x) => x.toLowerCase() !== current.toLowerCase()),
+  );
+  const show =
+    focus &&
+    current.length >= 1 &&
+    options.length > 0 &&
+    !(
+      options.length === 1 && options[0].toLowerCase() === current.toLowerCase()
+    );
 
   const pick = (o: string) => {
     const head = value.slice(0, cut + 1);
@@ -254,7 +314,9 @@ export function SuggestArea({
           const n = options.length;
           if (e.key === "ArrowDown" || e.key === "ArrowUp") {
             e.preventDefault();
-            setActive((a) => (e.key === "ArrowDown" ? (a + 1) % n : (a - 1 + n) % n));
+            setActive((a) =>
+              e.key === "ArrowDown" ? (a + 1) % n : (a - 1 + n) % n,
+            );
           } else if (e.key === "Enter" && active >= 0) {
             e.preventDefault();
             pick(options[active]);

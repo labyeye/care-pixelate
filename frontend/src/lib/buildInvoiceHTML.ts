@@ -1,3 +1,4 @@
+import { writePrintDocument } from "./printWindow";
 // Printable A4 invoice. Same layout and styling as the NestHR / NestPlay / NestLeads billing PDF
 // (bordered "TAX INVOICE" sheet: title bar, seller + meta header, bill-to row, line table, amount in
 // words, totals, HSN tax table, declaration + signature), filled with a clinic invoice instead of a
@@ -7,16 +8,65 @@ import type { Invoice } from "@/types/billing";
 import type { Doctor, Patient, Tenant } from "@/types";
 
 export function numToWords(n: number): string {
-  const a = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-  const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+  const a = [
+    "",
+    "One",
+    "Two",
+    "Three",
+    "Four",
+    "Five",
+    "Six",
+    "Seven",
+    "Eight",
+    "Nine",
+    "Ten",
+    "Eleven",
+    "Twelve",
+    "Thirteen",
+    "Fourteen",
+    "Fifteen",
+    "Sixteen",
+    "Seventeen",
+    "Eighteen",
+    "Nineteen",
+  ];
+  const b = [
+    "",
+    "",
+    "Twenty",
+    "Thirty",
+    "Forty",
+    "Fifty",
+    "Sixty",
+    "Seventy",
+    "Eighty",
+    "Ninety",
+  ];
   if (n === 0) return "Zero Rupees Only";
   const w = (x: number): string => {
     if (x < 20) return a[x] || "";
     if (x < 100) return b[Math.floor(x / 10)] + (x % 10 ? " " + a[x % 10] : "");
-    if (x < 1000) return a[Math.floor(x / 100)] + " Hundred" + (x % 100 ? " " + w(x % 100) : "");
-    if (x < 100000) return w(Math.floor(x / 1000)) + " Thousand" + (x % 1000 ? " " + w(x % 1000) : "");
-    if (x < 10000000) return w(Math.floor(x / 100000)) + " Lakh" + (x % 100000 ? " " + w(x % 100000) : "");
-    return w(Math.floor(x / 10000000)) + " Crore" + (x % 10000000 ? " " + w(x % 10000000) : "");
+    if (x < 1000)
+      return (
+        a[Math.floor(x / 100)] + " Hundred" + (x % 100 ? " " + w(x % 100) : "")
+      );
+    if (x < 100000)
+      return (
+        w(Math.floor(x / 1000)) +
+        " Thousand" +
+        (x % 1000 ? " " + w(x % 1000) : "")
+      );
+    if (x < 10000000)
+      return (
+        w(Math.floor(x / 100000)) +
+        " Lakh" +
+        (x % 100000 ? " " + w(x % 100000) : "")
+      );
+    return (
+      w(Math.floor(x / 10000000)) +
+      " Crore" +
+      (x % 10000000 ? " " + w(x % 10000000) : "")
+    );
   };
   const rupees = Math.floor(n + 0.0001);
   const paise = Math.round((n - rupees) * 100);
@@ -25,19 +75,33 @@ export function numToWords(n: number): string {
   return res + " Only";
 }
 
-export const fmt = (n: number) => "Rs. " + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+export const fmt = (n: number) =>
+  "Rs. " +
+  Number(n || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 const fmtDate = (v?: string | Date | null) =>
-  v ? new Date(v).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+  v
+    ? new Date(v).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
 const ageOf = (dob?: string) => {
   if (!dob) return "";
   const y = Math.floor((Date.now() - new Date(dob).getTime()) / 31_557_600_000);
   return y >= 0 && y < 150 ? `${y} yrs` : "";
 };
-const obj = <T,>(v: unknown): T | undefined => (v && typeof v === "object" ? (v as T) : undefined);
+const obj = <T>(v: unknown): T | undefined =>
+  v && typeof v === "object" ? (v as T) : undefined;
 
 export function buildInvoiceHTML(inv: Invoice, tenant: Tenant | null): string {
   const patient = obj<Patient>(inv.patientId);
-  const doctor = obj<Doctor>((inv as unknown as { doctorId?: unknown }).doctorId);
+  const doctor = obj<Doctor>(
+    (inv as unknown as { doctorId?: unknown }).doctorId,
+  );
   const dueDate = (inv as unknown as { dueDate?: string }).dueDate;
 
   const items = inv.items.map((l) => ({
@@ -52,19 +116,31 @@ export function buildInvoiceHTML(inv: Invoice, tenant: Tenant | null): string {
   const hasGst = gst > 0;
   const total = inv.total;
   const paid = inv.paid || 0;
-  const balance = inv.status === "void" ? 0 : Math.max(0, Math.round((total - paid) * 100) / 100);
+  const balance =
+    inv.status === "void"
+      ? 0
+      : Math.max(0, Math.round((total - paid) * 100) / 100);
 
   // Same state -> CGST + SGST; different states -> IGST. Unknown state is treated as the clinic's own.
   const sellerState = (tenant?.contact?.state || "").trim().toLowerCase();
   const buyerState = (patient?.address?.state || "").trim().toLowerCase();
-  const interState = !!sellerState && !!buyerState && sellerState !== buyerState;
+  const interState =
+    !!sellerState && !!buyerState && sellerState !== buyerState;
 
   // HSN-wise tax table: group lines by (HSN, GST rate)
-  const groups = new Map<string, { hsn: string; rate: number; taxable: number; tax: number }>();
+  const groups = new Map<
+    string,
+    { hsn: string; rate: number; taxable: number; tax: number }
+  >();
   for (const l of items) {
     if (!(l.gstRate > 0)) continue;
     const k = `${l.hsn}|${l.gstRate}`;
-    const g = groups.get(k) ?? { hsn: l.hsn || "—", rate: l.gstRate, taxable: 0, tax: 0 };
+    const g = groups.get(k) ?? {
+      hsn: l.hsn || "—",
+      rate: l.gstRate,
+      taxable: 0,
+      tax: 0,
+    };
     g.taxable += l.taxable;
     g.tax += Math.round(l.taxable * l.gstRate) / 100;
     groups.set(k, g);
@@ -74,22 +150,72 @@ export function buildInvoiceHTML(inv: Invoice, tenant: Tenant | null): string {
   const sgst = interState ? 0 : gst / 2;
   const igst = interState ? gst : 0;
 
-  const sellerName = esc(tenant?.gstDetails?.legalName || tenant?.name || "Clinic");
-  const sellerAddress = [tenant?.contact?.address, tenant?.contact?.city, tenant?.contact?.state, tenant?.contact?.pincode].filter(Boolean).map(esc).join(", ");
+  const sellerName = esc(
+    tenant?.gstDetails?.legalName || tenant?.name || "Clinic",
+  );
+  const sellerAddress = [
+    tenant?.contact?.address,
+    tenant?.contact?.city,
+    tenant?.contact?.state,
+    tenant?.contact?.pincode,
+  ]
+    .filter(Boolean)
+    .map(esc)
+    .join(", ");
   const is = tenant?.invoiceSettings;
-  const termLines = (is?.terms || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-  const termsHtml = (termLines.length ? termLines : ["Please quote the invoice number in all payment references.", "Medicines once dispensed cannot be returned or exchanged.", "Keep this invoice for insurance / reimbursement claims."])
-    .map((l, i) => `${i + 1}. ${esc(l)}`).join("<br/>");
+  const termLines = (is?.terms || "")
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const termsHtml = (
+    termLines.length
+      ? termLines
+      : [
+          "Please quote the invoice number in all payment references.",
+          "Medicines once dispensed cannot be returned or exchanged.",
+          "Keep this invoice for insurance / reimbursement claims.",
+        ]
+  )
+    .map((l, i) => `${i + 1}. ${esc(l)}`)
+    .join("<br/>");
   const bk = tenant?.bank;
-  const bankRows = [["A/c Name", bk?.accountHolder], ["Bank", [bk?.bankName, bk?.branch].filter(Boolean).join(", ")], ["A/c No.", bk?.accountNumber], ["IFSC", bk?.ifsc], ["UPI", bk?.upiId]].filter(([, v]) => v);
-  const bankHtml = is?.showBank !== false && bankRows.length
-    ? `<div class="divider-h"></div><div class="section-label">Bank Details</div>${bankRows.map(([k, v]) => `<div class="bank-line">${k}: <strong>${esc(String(v))}</strong></div>`).join("")}`
-    : "";
-  const logo = tenant?.branding?.logoUrl && /^(data:image\/(png|jpeg|webp);base64,|https:\/\/)/.test(tenant.branding.logoUrl) ? tenant.branding.logoUrl : "";
+  const bankRows = [
+    ["A/c Name", bk?.accountHolder],
+    ["Bank", [bk?.bankName, bk?.branch].filter(Boolean).join(", ")],
+    ["A/c No.", bk?.accountNumber],
+    ["IFSC", bk?.ifsc],
+    ["UPI", bk?.upiId],
+  ].filter(([, v]) => v);
+  const bankHtml =
+    is?.showBank !== false && bankRows.length
+      ? `<div class="divider-h"></div><div class="section-label">Bank Details</div>${bankRows.map(([k, v]) => `<div class="bank-line">${k}: <strong>${esc(String(v))}</strong></div>`).join("")}`
+      : "";
+  const logo =
+    tenant?.branding?.logoUrl &&
+    /^(data:image\/(png|jpeg|webp);base64,|https:\/\/)/.test(
+      tenant.branding.logoUrl,
+    )
+      ? tenant.branding.logoUrl
+      : "";
 
   const patientName = esc(patient?.name || "—");
-  const patientAddress = [patient?.address?.street, patient?.address?.city, patient?.address?.state, patient?.address?.pincode].filter(Boolean).map(esc).join(", ");
-  const patientLine = [patient?.patientId && `Patient ID: ${patient.patientId}`, ageOf(patient?.dateOfBirth), patient?.gender].filter(Boolean).map((x) => esc(x)).join(" &nbsp;|&nbsp; ");
+  const patientAddress = [
+    patient?.address?.street,
+    patient?.address?.city,
+    patient?.address?.state,
+    patient?.address?.pincode,
+  ]
+    .filter(Boolean)
+    .map(esc)
+    .join(", ");
+  const patientLine = [
+    patient?.patientId && `Patient ID: ${patient.patientId}`,
+    ageOf(patient?.dateOfBirth),
+    patient?.gender,
+  ]
+    .filter(Boolean)
+    .map((x) => esc(x))
+    .join(" &nbsp;|&nbsp; ");
 
   const rowsHtml = items
     .map(
@@ -107,12 +233,18 @@ export function buildInvoiceHTML(inv: Invoice, tenant: Tenant | null): string {
     )
     .join("");
   const emptyRows = Array.from({ length: Math.max(0, 6 - items.length) })
-    .map(() => `<tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`)
+    .map(
+      () =>
+        `<tr class="empty-row"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`,
+    )
     .join("");
 
   const paymentsHtml = inv.payments.length
     ? inv.payments
-        .map((p) => `<div class="bank-line">${esc(fmtDate(p.receivedAt))} &nbsp;·&nbsp; ${esc(String(p.mode).toUpperCase())}${p.reference ? " · " + esc(p.reference) : ""} &nbsp;·&nbsp; <strong>${fmt(p.amount)}</strong></div>`)
+        .map(
+          (p) =>
+            `<div class="bank-line">${esc(fmtDate(p.receivedAt))} &nbsp;·&nbsp; ${esc(String(p.mode).toUpperCase())}${p.reference ? " · " + esc(p.reference) : ""} &nbsp;·&nbsp; <strong>${fmt(p.amount)}</strong></div>`,
+        )
         .join("")
     : `<div class="bank-line" style="color:#888">No payment received yet</div>`;
 
@@ -131,8 +263,17 @@ export function buildInvoiceHTML(inv: Invoice, tenant: Tenant | null): string {
     : `<tr><td><strong>Total</strong></td><td style="text-align:right"><strong>${fmt(lineTaxable)}</strong></td><td></td><td style="text-align:right"><strong>${fmt(cgst)}</strong></td><td></td><td style="text-align:right"><strong>${fmt(sgst)}</strong></td><td style="text-align:right"><strong>${fmt(gst)}</strong></td></tr>`;
 
   const title = hasGst ? "TAX INVOICE" : "INVOICE";
-  const statusText = inv.status === "paid" ? "PAID" : inv.status === "partial" ? "PART PAID" : inv.status === "void" ? "VOID" : "UNPAID";
-  const noteLines = (inv as unknown as { notes?: string }).notes ? `<br/>${esc((inv as unknown as { notes?: string }).notes)}` : "";
+  const statusText =
+    inv.status === "paid"
+      ? "PAID"
+      : inv.status === "partial"
+        ? "PART PAID"
+        : inv.status === "void"
+          ? "VOID"
+          : "UNPAID";
+  const noteLines = (inv as unknown as { notes?: string }).notes
+    ? `<br/>${esc((inv as unknown as { notes?: string }).notes)}`
+    : "";
 
   return `<!DOCTYPE html>
 <html>
@@ -363,11 +504,13 @@ td { padding: 7px 5px; font-size: 8pt; color: #111; border-bottom: 0.5pt solid #
  * Writes the invoice into a print window (Save as PDF from there). Pass a window opened synchronously in the
  * click handler when the invoice has to be fetched first, so the browser does not treat it as a blocked pop-up.
  */
-export function openInvoicePDF(inv: Invoice, tenant: Tenant | null, win?: Window | null): boolean {
+export function openInvoicePDF(
+  inv: Invoice,
+  tenant: Tenant | null,
+  win?: Window | null,
+): boolean {
   const w = win ?? window.open("", "_blank");
   if (!w) return false;
-  w.document.write(buildInvoiceHTML(inv, tenant));
-  w.document.close();
-  setTimeout(() => w.print(), 500);
+  writePrintDocument(w, buildInvoiceHTML(inv, tenant), true);
   return true;
 }

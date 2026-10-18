@@ -20,7 +20,11 @@ export interface SummaryCard {
 
 /** Headline numbers for every list page (true totals, not just the loaded rows). */
 export function useSummary() {
-  return useQuery({ queryKey: ["summary"], queryFn: summaryAPI.get, staleTime: 30_000 });
+  return useQuery({
+    queryKey: ["summary"],
+    queryFn: summaryAPI.get,
+    staleTime: 30_000,
+  });
 }
 
 const ADMINS = ["super_admin", "tenant_owner", "hospital_admin"];
@@ -28,9 +32,13 @@ const CLINICAL_EXPORT = [...ADMINS, "doctor"];
 const FINANCIAL_EXPORT = [...ADMINS, "billing_executive"];
 const INVENTORY_EXPORT = [...ADMINS, "pharmacist"];
 
-const shimmer = <span className="inline-block h-7 w-12 animate-pulse bg-muted" />;
-export const stat = (n: number | undefined | null) => (n === undefined || n === null ? shimmer : n.toLocaleString("en-IN"));
-export const inr = (n: number | undefined | null) => (n === undefined || n === null ? shimmer : `₹${n.toLocaleString("en-IN")}`);
+const shimmer = (
+  <span className="inline-block h-7 w-12 animate-pulse bg-muted" />
+);
+export const stat = (n: number | undefined | null) =>
+  n === undefined || n === null ? shimmer : n.toLocaleString("en-IN");
+export const inr = (n: number | undefined | null) =>
+  n === undefined || n === null ? shimmer : `₹${n.toLocaleString("en-IN")}`;
 
 /**
  * Card row + action bar shared by the list pages.
@@ -51,7 +59,15 @@ export function SummaryBar({
   cards: SummaryCard[];
   active: string;
   onPick: (key: string) => void;
-  exportType?: "patients" | "doctors" | "appointments" | "revenue" | "lab" | "outstanding" | "stock-on-hand" | "vendor-directory";
+  exportType?:
+    | "patients"
+    | "doctors"
+    | "appointments"
+    | "revenue"
+    | "lab"
+    | "outstanding"
+    | "stock-on-hand"
+    | "vendor-directory";
   exportLabel?: string;
   shown?: number;
   total?: number;
@@ -64,7 +80,12 @@ export function SummaryBar({
 
   const canExport =
     !!exportType &&
-    (["revenue", "outstanding"].includes(exportType) ? FINANCIAL_EXPORT : ["stock-on-hand", "vendor-directory"].includes(exportType) ? INVENTORY_EXPORT : CLINICAL_EXPORT).includes(user?.role ?? "");
+    (["revenue", "outstanding"].includes(exportType)
+      ? FINANCIAL_EXPORT
+      : ["stock-on-hand", "vendor-directory"].includes(exportType)
+        ? INVENTORY_EXPORT
+        : CLINICAL_EXPORT
+    ).includes(user?.role ?? "");
 
   const refresh = async () => {
     setSpin(true);
@@ -96,7 +117,11 @@ export function SummaryBar({
             color={c.color}
             sub={c.sub}
             active={c.filterable ? active === c.key : false}
-            onClick={c.filterable ? () => onPick(active === c.key ? "all" : c.key) : undefined}
+            onClick={
+              c.filterable
+                ? () => onPick(active === c.key ? "all" : c.key)
+                : undefined
+            }
           />
         ))}
       </div>
@@ -107,12 +132,14 @@ export function SummaryBar({
             onClick={() => onPick("all")}
             className="flex items-center gap-1 border-2 border-black bg-[#024BAB] px-2 py-1 text-xs font-bold text-white"
           >
-            {cards.find((c) => c.key === active)?.label ?? active} <X className="h-3 w-3" />
+            {cards.find((c) => c.key === active)?.label ?? active}{" "}
+            <X className="h-3 w-3" />
           </button>
         )}
         {shown !== undefined && total !== undefined && (
           <span className="text-xs font-semibold text-muted-foreground">
-            Showing {shown.toLocaleString("en-IN")} of {total.toLocaleString("en-IN")}
+            Showing {shown.toLocaleString("en-IN")} of{" "}
+            {total.toLocaleString("en-IN")}
           </span>
         )}
         <div className="ml-auto flex flex-wrap gap-2">
@@ -121,7 +148,8 @@ export function SummaryBar({
             onClick={refresh}
             className="flex items-center gap-2 border-2 border-black bg-white px-3 py-1.5 text-sm font-semibold hover:bg-gray-50"
           >
-            <RefreshCw className={`h-4 w-4 ${spin ? "animate-spin" : ""}`} /> Refresh
+            <RefreshCw className={`h-4 w-4 ${spin ? "animate-spin" : ""}`} />{" "}
+            Refresh
           </button>
           {canExport && (
             <button
@@ -129,7 +157,8 @@ export function SummaryBar({
               disabled={busy}
               className="flex items-center gap-2 border-2 border-black bg-[#024BAB] px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-60"
             >
-              <Download className="h-4 w-4" /> {busy ? "Preparing…" : exportLabel}
+              <Download className="h-4 w-4" />{" "}
+              {busy ? "Preparing…" : exportLabel}
             </button>
           )}
         </div>

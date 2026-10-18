@@ -24,7 +24,13 @@ export interface Invoice {
   total: number;
   paid: number;
   status: "unpaid" | "partial" | "paid" | "void";
-  payments: { amount: number; mode: string; reference?: string; receivedAt: string; receivedBy?: string | { name: string } }[];
+  payments: {
+    amount: number;
+    mode: string;
+    reference?: string;
+    receivedAt: string;
+    receivedBy?: string | { name: string };
+  }[];
   createdBy?: string | { name: string };
   notes?: string;
   dueDate?: string;
@@ -91,7 +97,11 @@ export interface BillableItem {
   medicineId?: string;
   /** false = no price known yet; the user types it once and it is remembered. */
   priced: boolean;
-  source: { kind: "appointment" | "lab" | "medicine"; refId: string; key: string };
+  source: {
+    kind: "appointment" | "lab" | "medicine";
+    refId: string;
+    key: string;
+  };
 }
 
 /** Type-ahead result for an invoice line: an inventory medicine or a price-list item, with everything to fill the row. */

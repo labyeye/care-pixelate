@@ -119,27 +119,42 @@ function fmtDate(v: any): string {
   }
 }
 
-export function buildSubscriptionInvoiceHTML(inv: SubscriptionInvoice, company: InvoiceClient, planName: string): string {
+export function buildSubscriptionInvoiceHTML(
+  inv: SubscriptionInvoice,
+  company: InvoiceClient,
+  planName: string,
+): string {
   const total = Number(inv.amount || 0);
 
-  const clientState = String(company.state || "").trim().toLowerCase();
+  const clientState = String(company.state || "")
+    .trim()
+    .toLowerCase();
   const isInterState = !!clientState && !clientState.includes("bihar");
   // The server stores the taxable value and GST it charged; fall back to reversing 18% for old rows.
   const base = inv.subtotal ? Number(inv.subtotal) : total / 1.18;
-  const taxAmt = inv.gst !== undefined && inv.subtotal ? Number(inv.gst) : total - base;
+  const taxAmt =
+    inv.gst !== undefined && inv.subtotal ? Number(inv.gst) : total - base;
   const cgst = isInterState ? 0 : taxAmt / 2;
   const sgst = isInterState ? 0 : taxAmt / 2;
   const igst = isInterState ? taxAmt : 0;
 
   const doctors = Math.max(1, Number(inv.doctors) || 1);
   const cycle = inv.billingCycle === "yearly" ? "Annual" : "Monthly";
-  const description = esc(`NestCare ${planName} — ${doctors} doctor${doctors > 1 ? "s" : ""} — ${cycle} Subscription`);
+  const description = esc(
+    `NestCare ${planName} — ${doctors} doctor${doctors > 1 ? "s" : ""} — ${cycle} Subscription`,
+  );
 
   const invoiceDate = fmtDate(inv.paidAt || inv.createdAt);
-  const invoiceNumber = esc(inv.invoiceNumber || inv._id?.toString().slice(-8).toUpperCase() || "—");
+  const invoiceNumber = esc(
+    inv.invoiceNumber || inv._id?.toString().slice(-8).toUpperCase() || "—",
+  );
 
   const clientName = esc(company.name || "—");
-  const clientAddress = esc([company.address, company.city, company.state, company.pincode].filter(Boolean).join(", "));
+  const clientAddress = esc(
+    [company.address, company.city, company.state, company.pincode]
+      .filter(Boolean)
+      .join(", "),
+  );
   const clientGST = esc(company.gstin || "");
   const clientEmail = esc(company.email || "");
   const clientPhone = esc(company.phone || "");

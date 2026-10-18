@@ -12,13 +12,17 @@ Return ONLY one JSON object with this shape:
  "followUpInDays":number|null}`;
 
 const str = (v, n) => (typeof v === "string" ? v.trim().slice(0, n) : "");
-const numOrUndef = (v, lo, hi) => (typeof v === "number" && Number.isFinite(v) && v >= lo && v <= hi ? v : undefined);
+const numOrUndef = (v, lo, hi) =>
+  typeof v === "number" && Number.isFinite(v) && v >= lo && v <= hi
+    ? v
+    : undefined;
 
 // Pulls the first JSON object out of the model text and keeps only known, bounded fields.
 function parseDraft(text) {
   const start = String(text).indexOf("{");
   const end = String(text).lastIndexOf("}");
-  if (start < 0 || end <= start) throw new Error("The AI response was not valid JSON");
+  if (start < 0 || end <= start)
+    throw new Error("The AI response was not valid JSON");
   let raw;
   try {
     raw = JSON.parse(String(text).slice(start, end + 1));
@@ -26,10 +30,15 @@ function parseDraft(text) {
     throw new Error("The AI response was not valid JSON");
   }
   const v = raw.vitals || {};
-  const items = Array.isArray(raw.prescription?.items) ? raw.prescription.items : [];
+  const items = Array.isArray(raw.prescription?.items)
+    ? raw.prescription.items
+    : [];
   return {
     complaints: str(raw.complaints, 1000),
-    diagnosis: (Array.isArray(raw.diagnosis) ? raw.diagnosis : []).map((d) => str(d, 200)).filter(Boolean).slice(0, 10),
+    diagnosis: (Array.isArray(raw.diagnosis) ? raw.diagnosis : [])
+      .map((d) => str(d, 200))
+      .filter(Boolean)
+      .slice(0, 10),
     notes: str(raw.notes, 4000),
     vitals: {
       bp: str(v.bp, 20),
@@ -68,12 +77,21 @@ async function draftFromTranscript(transcript) {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       signal: ctl.signal,
-      headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+      },
       body: JSON.stringify({
         model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5",
         max_tokens: 1500,
         system: SYSTEM,
-        messages: [{ role: "user", content: `<transcript>\n${String(transcript).slice(0, MAX_INPUT)}\n</transcript>` }],
+        messages: [
+          {
+            role: "user",
+            content: `<transcript>\n${String(transcript).slice(0, MAX_INPUT)}\n</transcript>`,
+          },
+        ],
       }),
     });
     const data = await res.json().catch(() => ({}));

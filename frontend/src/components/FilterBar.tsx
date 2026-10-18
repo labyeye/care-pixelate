@@ -8,8 +8,21 @@ export interface FilterOption {
 }
 
 export type FilterDef =
-  | { kind: "select"; key: string; label: string; value: string; onChange: (v: string) => void; options: FilterOption[] }
-  | { kind: "date"; key: string; label: string; value: string; onChange: (v: string) => void };
+  | {
+      kind: "select";
+      key: string;
+      label: string;
+      value: string;
+      onChange: (v: string) => void;
+      options: FilterOption[];
+    }
+  | {
+      kind: "date";
+      key: string;
+      label: string;
+      value: string;
+      onChange: (v: string) => void;
+    };
 
 /** Debounces a fast-changing value (search box) before it hits a query key. */
 export function useDebounced<T>(value: T, ms = 300) {
@@ -22,10 +35,17 @@ export function useDebounced<T>(value: T, ms = 300) {
 }
 
 /** Case-insensitive "does any of these fields contain the query" used by client-side search. */
-export const matches = (q: string, ...fields: (string | number | undefined | null)[]) => {
+export const matches = (
+  q: string,
+  ...fields: (string | number | undefined | null)[]
+) => {
   const needle = q.trim().toLowerCase();
   if (!needle) return true;
-  return fields.some((f) => String(f ?? "").toLowerCase().includes(needle));
+  return fields.some((f) =>
+    String(f ?? "")
+      .toLowerCase()
+      .includes(needle),
+  );
 };
 
 const field =
@@ -44,7 +64,8 @@ export function FilterBar({
   filters?: FilterDef[];
 }) {
   const active =
-    (search.trim() ? 1 : 0) + filters.filter((f) => f.value && f.value !== "all").length;
+    (search.trim() ? 1 : 0) +
+    filters.filter((f) => f.value && f.value !== "all").length;
 
   const clear = () => {
     onSearch("");
@@ -73,7 +94,13 @@ export function FilterBar({
               aria-label={f.label}
               value={f.value}
               onChange={(e) => f.onChange(e.target.value)}
-              className={cn(field, "appearance-none py-2.5 pl-3 pr-8 capitalize", f.value !== "all" && f.value !== "" && "border-[#024BAB] bg-[#F0F6FF]")}
+              className={cn(
+                field,
+                "appearance-none py-2.5 pl-3 pr-8 capitalize",
+                f.value !== "all" &&
+                  f.value !== "" &&
+                  "border-[#024BAB] bg-[#F0F6FF]",
+              )}
             >
               <option value="all">{f.label}: All</option>
               {f.options.map((o) => (
@@ -85,15 +112,26 @@ export function FilterBar({
             <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2" />
           </label>
         ) : (
-          <label key={f.key} className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <label
+            key={f.key}
+            className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground"
+          >
             {f.label}
-            <input type="date" value={f.value} onChange={(e) => f.onChange(e.target.value)} className={cn(field, "px-3 py-2 normal-case text-black")} />
+            <input
+              type="date"
+              value={f.value}
+              onChange={(e) => f.onChange(e.target.value)}
+              className={cn(field, "px-3 py-2 normal-case text-black")}
+            />
           </label>
         ),
       )}
 
       {active > 0 && (
-        <button onClick={clear} className="flex items-center gap-1 border-2 border-black bg-white px-3 py-2.5 text-sm font-semibold hover:bg-gray-50">
+        <button
+          onClick={clear}
+          className="flex items-center gap-1 border-2 border-black bg-white px-3 py-2.5 text-sm font-semibold hover:bg-gray-50"
+        >
           <X className="h-4 w-4" /> Clear ({active})
         </button>
       )}

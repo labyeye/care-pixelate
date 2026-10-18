@@ -4,7 +4,11 @@ const mongoose = require("mongoose");
 // optional: medicineId links the catalog; the snapshots keep the prescription readable if the catalog changes.
 const itemSchema = new mongoose.Schema(
   {
-    medicineId: { type: mongoose.Schema.Types.ObjectId, ref: "Medicine", default: undefined },
+    medicineId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Medicine",
+      default: undefined,
+    },
     drug: { type: String, required: true, trim: true },
     genericName: { type: String, trim: true, default: "" },
     strength: { type: String, trim: true, default: "" },
@@ -22,10 +26,22 @@ const itemSchema = new mongoose.Schema(
 // One visit = one consultation; the prescription lives inside it so it can never drift from the notes.
 const consultationSchema = new mongoose.Schema(
   {
-    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "Tenant", required: true },
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tenant",
+      required: true,
+    },
     appointmentId: { type: mongoose.Schema.Types.ObjectId, ref: "Appointment" },
-    patientId: { type: mongoose.Schema.Types.ObjectId, ref: "Patient", required: true },
-    doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor", required: true },
+    patientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Patient",
+      required: true,
+    },
+    doctorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+      required: true,
+    },
     vitals: {
       bp: { type: String, default: "" },
       pulse: Number,
@@ -44,6 +60,7 @@ const consultationSchema = new mongoose.Schema(
     diagnosis: { type: [String], default: [] },
     notes: { type: String, trim: true, default: "" },
     followUpOn: Date,
+    followUpReminderSentAt: Date,
     prescription: {
       items: { type: [itemSchema], default: [] },
       advice: { type: String, trim: true, default: "" },
@@ -56,6 +73,9 @@ const consultationSchema = new mongoose.Schema(
 );
 
 consultationSchema.index({ tenantId: 1, patientId: 1, createdAt: -1 });
-consultationSchema.index({ tenantId: 1, appointmentId: 1 }, { unique: true, sparse: true });
+consultationSchema.index(
+  { tenantId: 1, appointmentId: 1 },
+  { unique: true, sparse: true },
+);
 
 module.exports = mongoose.model("Consultation", consultationSchema);

@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 
-type Tone = 'primary' | 'secondary' | 'success' | 'warning' | 'destructive' | 'muted';
+type Tone =
+  'primary' | 'secondary' | 'success' | 'warning' | 'destructive' | 'muted';
 
 interface BadgeProps {
   label: string;
@@ -25,7 +26,12 @@ export default function Badge({ label, tone = 'muted' }: BadgeProps) {
   const textColor = tone === 'muted' ? colors.text : colors.white;
 
   return (
-    <View style={[styles.badge, { backgroundColor: bg, borderColor: colors.border }]}>
+    <View
+      style={[
+        styles.badge,
+        { backgroundColor: bg, borderColor: colors.border },
+      ]}
+    >
       <Text style={[styles.text, { color: textColor }]}>{label}</Text>
     </View>
   );

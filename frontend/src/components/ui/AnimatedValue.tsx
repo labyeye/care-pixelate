@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
-const reduced = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+const reduced = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /** Tweens a number from its previous value to `to` (ease-out), or jumps straight there with reduced motion. */
 function useTween(to: number, ms = 800) {
@@ -31,9 +33,26 @@ function useTween(to: number, ms = 800) {
 // "₹1,23,456" / "12" / "4.5 h" -> prefix, number, suffix. Anything else is left alone.
 const SPLIT = /^(\D*?)(\d[\d,]*(?:\.\d+)?)(\D*)$/;
 
-function Counting({ prefix, num, suffix, decimals, grouped }: { prefix: string; num: number; suffix: string; decimals: number; grouped: boolean }) {
+function Counting({
+  prefix,
+  num,
+  suffix,
+  decimals,
+  grouped,
+}: {
+  prefix: string;
+  num: number;
+  suffix: string;
+  decimals: number;
+  grouped: boolean;
+}) {
   const v = useTween(num);
-  const shown = grouped ? v.toLocaleString("en-IN", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) : v.toFixed(decimals);
+  const shown = grouped
+    ? v.toLocaleString("en-IN", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })
+    : v.toFixed(decimals);
   return (
     <>
       {prefix}
@@ -49,7 +68,15 @@ function Counting({ prefix, num, suffix, decimals, grouped }: { prefix: string; 
  */
 export function AnimatedValue({ value }: { value: React.ReactNode }) {
   if (typeof value === "number" && Number.isFinite(value)) {
-    return <Counting prefix="" num={value} suffix="" decimals={Number.isInteger(value) ? 0 : 1} grouped />;
+    return (
+      <Counting
+        prefix=""
+        num={value}
+        suffix=""
+        decimals={Number.isInteger(value) ? 0 : 1}
+        grouped
+      />
+    );
   }
   if (typeof value === "string") {
     const m = SPLIT.exec(value.trim());
@@ -57,7 +84,15 @@ export function AnimatedValue({ value }: { value: React.ReactNode }) {
       const n = Number(m[2].replace(/,/g, ""));
       if (Number.isFinite(n)) {
         const dot = m[2].split(".")[1];
-        return <Counting prefix={m[1]} num={n} suffix={m[3]} decimals={dot ? dot.length : 0} grouped={m[2].includes(",")} />;
+        return (
+          <Counting
+            prefix={m[1]}
+            num={n}
+            suffix={m[3]}
+            decimals={dot ? dot.length : 0}
+            grouped={m[2].includes(",")}
+          />
+        );
       }
     }
   }

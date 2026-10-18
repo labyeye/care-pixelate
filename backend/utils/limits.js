@@ -7,7 +7,9 @@ async function assertWithinLimit(req, res, key, countFn, label) {
   const cap = tenant?.limits?.[key];
   if (cap && (await countFn()) >= cap) {
     res.status(402);
-    throw new Error(`Your plan allows ${cap} ${label}. Upgrade in Billing to add more.`);
+    throw new Error(
+      `Your plan allows ${cap} ${label}. Upgrade in Billing to add more.`,
+    );
   }
 }
 

@@ -5,7 +5,8 @@ const Patient = require("../models/Patient");
 const Doctor = require("../models/Doctor");
 const StaffProfile = require("../models/StaffProfile");
 
-const DATA_URL = /^data:(image\/(?:png|jpeg|jpg|webp));base64,([A-Za-z0-9+/=\s]+)$/;
+const DATA_URL =
+  /^data:(image\/(?:png|jpeg|jpg|webp));base64,([A-Za-z0-9+/=\s]+)$/;
 
 // Returns { type, buffer } for a stored data URL, or null for anything else (never trusts other schemes).
 const decodeImage = (value) => {
@@ -17,10 +18,13 @@ const decodeImage = (value) => {
 };
 
 const FINDERS = {
-  patient: (tenantId, id) => Patient.findOne({ _id: id, tenantId }).select("profileImage"),
-  doctor: (tenantId, id) => Doctor.findOne({ _id: id, tenantId }).select("profileImage"),
+  patient: (tenantId, id) =>
+    Patient.findOne({ _id: id, tenantId }).select("profileImage"),
+  doctor: (tenantId, id) =>
+    Doctor.findOne({ _id: id, tenantId }).select("profileImage"),
   // staff are addressed by their login (User) id, which is what the staff list and audit log carry
-  staff: (tenantId, id) => StaffProfile.findOne({ userId: id, tenantId }).select("profileImage"),
+  staff: (tenantId, id) =>
+    StaffProfile.findOne({ userId: id, tenantId }).select("profileImage"),
 };
 
 const photo = asyncHandler(async (req, res) => {
@@ -52,10 +56,17 @@ if (require.main === module) {
   const ok = decodeImage("data:image/png;base64,iVBORw0KGgo=");
   assert.strictEqual(ok.type, "image/png");
   assert.ok(ok.buffer.length > 0);
-  assert.strictEqual(decodeImage("data:image/svg+xml;base64,PHN2Zz4="), null, "svg can carry script: refused");
+  assert.strictEqual(
+    decodeImage("data:image/svg+xml;base64,PHN2Zz4="),
+    null,
+    "svg can carry script: refused",
+  );
   assert.strictEqual(decodeImage("data:text/html;base64,PGgxPg=="), null);
   assert.strictEqual(decodeImage("https://evil.example/x.png"), null);
   assert.strictEqual(decodeImage(""), null);
-  assert.strictEqual(decodeImage("data:image/jpg;base64,/9j/4AAQ").type, "image/jpeg");
+  assert.strictEqual(
+    decodeImage("data:image/jpg;base64,/9j/4AAQ").type,
+    "image/jpeg",
+  );
   console.log("photo ok");
 }

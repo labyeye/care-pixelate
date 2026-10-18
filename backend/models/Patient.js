@@ -105,11 +105,13 @@ const patientSchema = new mongoose.Schema(
       pastMedicalHistory: [{ type: String }],
       pastSurgicalHistory: [{ type: String }],
       familyMedicalHistory: [{ type: String }],
-      currentMedications: [{
-        name: String,
-        dosage: String,
-        frequency: String,
-      }],
+      currentMedications: [
+        {
+          name: String,
+          dosage: String,
+          frequency: String,
+        },
+      ],
       notes: { type: String, default: "" },
     },
 
@@ -125,19 +127,22 @@ const patientSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 );
 
-patientSchema.index(
-  { tenantId: 1, patientId: 1 },
-  { unique: true }
-);
+patientSchema.index({ tenantId: 1, patientId: 1 }, { unique: true });
 
 patientSchema.index({ tenantId: 1, "contact.phone": 1 });
 
 // Display name for lists / print-outs. Needs firstName + lastName in any `.select()`.
 patientSchema.virtual("name").get(function () {
-  return [this.firstName, this.middleName, this.lastName].filter(Boolean).join(" ");
+  return [this.firstName, this.middleName, this.lastName]
+    .filter(Boolean)
+    .join(" ");
 });
 
 const Patient = mongoose.model("Patient", patientSchema);

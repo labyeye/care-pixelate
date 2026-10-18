@@ -53,15 +53,27 @@ function HomeStack() {
   return (
     <HomeStackNav.Navigator screenOptions={{ headerShown: false }}>
       <HomeStackNav.Screen name="HomeHome" component={HomeScreen} />
-      <HomeStackNav.Screen name="BookAppointment" component={BookAppointmentScreen} />
+      <HomeStackNav.Screen
+        name="BookAppointment"
+        component={BookAppointmentScreen}
+      />
       <HomeStackNav.Screen name="Doctors" component={DoctorsScreen} />
       <HomeStackNav.Screen name="DoctorDetail" component={DoctorDetailScreen} />
-      <HomeStackNav.Screen name="AppointmentDetail" component={AppointmentDetailScreen} />
-      <HomeStackNav.Screen name="Prescriptions" component={PrescriptionsScreen} />
+      <HomeStackNav.Screen
+        name="AppointmentDetail"
+        component={AppointmentDetailScreen}
+      />
+      <HomeStackNav.Screen
+        name="Prescriptions"
+        component={PrescriptionsScreen}
+      />
       <HomeStackNav.Screen name="LabResults" component={LabResultsScreen} />
       <HomeStackNav.Screen name="Vitals" component={VitalsScreen} />
       <HomeStackNav.Screen name="Emergency" component={EmergencyScreen} />
-      <HomeStackNav.Screen name="Notifications" component={NotificationsScreen} />
+      <HomeStackNav.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+      />
       <HomeStackNav.Screen name="Messages" component={MessagesScreen} />
       <HomeStackNav.Screen name="Chat" component={ChatScreen} />
       <HomeStackNav.Screen name="VideoCall" component={VideoCallScreen} />
@@ -73,12 +85,27 @@ function HomeStack() {
 function AppointmentsStack() {
   return (
     <AppointmentsStackNav.Navigator screenOptions={{ headerShown: false }}>
-      <AppointmentsStackNav.Screen name="AppointmentsList" component={AppointmentsScreen} />
-      <AppointmentsStackNav.Screen name="AppointmentDetail" component={AppointmentDetailScreen} />
-      <AppointmentsStackNav.Screen name="BookAppointment" component={BookAppointmentScreen} />
+      <AppointmentsStackNav.Screen
+        name="AppointmentsList"
+        component={AppointmentsScreen}
+      />
+      <AppointmentsStackNav.Screen
+        name="AppointmentDetail"
+        component={AppointmentDetailScreen}
+      />
+      <AppointmentsStackNav.Screen
+        name="BookAppointment"
+        component={BookAppointmentScreen}
+      />
       <AppointmentsStackNav.Screen name="Doctors" component={DoctorsScreen} />
-      <AppointmentsStackNav.Screen name="DoctorDetail" component={DoctorDetailScreen} />
-      <AppointmentsStackNav.Screen name="VideoCall" component={VideoCallScreen} />
+      <AppointmentsStackNav.Screen
+        name="DoctorDetail"
+        component={DoctorDetailScreen}
+      />
+      <AppointmentsStackNav.Screen
+        name="VideoCall"
+        component={VideoCallScreen}
+      />
     </AppointmentsStackNav.Navigator>
   );
 }
@@ -86,12 +113,27 @@ function AppointmentsStack() {
 function RecordsStack() {
   return (
     <RecordsStackNav.Navigator screenOptions={{ headerShown: false }}>
-      <RecordsStackNav.Screen name="MedicalRecordsHome" component={MedicalRecordsScreen} />
-      <RecordsStackNav.Screen name="HealthTimeline" component={HealthTimelineScreen} />
-      <RecordsStackNav.Screen name="Prescriptions" component={PrescriptionsScreen} />
-      <RecordsStackNav.Screen name="PrescriptionDetail" component={PrescriptionDetailScreen} />
+      <RecordsStackNav.Screen
+        name="MedicalRecordsHome"
+        component={MedicalRecordsScreen}
+      />
+      <RecordsStackNav.Screen
+        name="HealthTimeline"
+        component={HealthTimelineScreen}
+      />
+      <RecordsStackNav.Screen
+        name="Prescriptions"
+        component={PrescriptionsScreen}
+      />
+      <RecordsStackNav.Screen
+        name="PrescriptionDetail"
+        component={PrescriptionDetailScreen}
+      />
       <RecordsStackNav.Screen name="LabResults" component={LabResultsScreen} />
-      <RecordsStackNav.Screen name="MedicineReminder" component={MedicineReminderScreen} />
+      <RecordsStackNav.Screen
+        name="MedicineReminder"
+        component={MedicineReminderScreen}
+      />
       <RecordsStackNav.Screen name="Vitals" component={VitalsScreen} />
       <RecordsStackNav.Screen name="Insurance" component={InsuranceScreen} />
       <RecordsStackNav.Screen name="Payments" component={PaymentsScreen} />
@@ -120,12 +162,35 @@ function MessagesStack() {
 // Same bottom bar as NestHR / NestStaff: five tabs with the middle one raised in a notch.
 function MainTabs() {
   return (
-    <Tab.Navigator tabBar={p => <TabBar {...p} />} screenOptions={{ headerShown: false }}>
-      <Tab.Screen name="Home" component={HomeStack} options={{ tabBarLabel: 'Home' }} />
-      <Tab.Screen name="RecordsTab" component={RecordsStack} options={{ tabBarLabel: 'Records' }} />
-      <Tab.Screen name="AppointmentsTab" component={AppointmentsStack} options={{ tabBarLabel: 'Visits' }} />
-      <Tab.Screen name="MessagesTab" component={MessagesStack} options={{ tabBarLabel: 'Chat' }} />
-      <Tab.Screen name="ProfileTab" component={ProfileStack} options={{ tabBarLabel: 'Profile' }} />
+    <Tab.Navigator
+      tabBar={p => <TabBar {...p} />}
+      screenOptions={{ headerShown: false }}
+    >
+      <Tab.Screen
+        name="Home"
+        component={HomeStack}
+        options={{ tabBarLabel: 'Home' }}
+      />
+      <Tab.Screen
+        name="RecordsTab"
+        component={RecordsStack}
+        options={{ tabBarLabel: 'Records' }}
+      />
+      <Tab.Screen
+        name="AppointmentsTab"
+        component={AppointmentsStack}
+        options={{ tabBarLabel: 'Visits' }}
+      />
+      <Tab.Screen
+        name="MessagesTab"
+        component={MessagesStack}
+        options={{ tabBarLabel: 'Chat' }}
+      />
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileStack}
+        options={{ tabBarLabel: 'Profile' }}
+      />
     </Tab.Navigator>
   );
 }
@@ -145,7 +210,11 @@ export default function AppNavigator() {
   useEffect(() => {
     if (isLoading || wasAuthed.current === isAuthenticated) return;
     wasAuthed.current = isAuthenticated;
-    if (navigationRef.isReady()) navigationRef.reset({ index: 0, routes: [{ name: isAuthenticated ? 'Main' : 'Login' }] });
+    if (navigationRef.isReady())
+      navigationRef.reset({
+        index: 0,
+        routes: [{ name: isAuthenticated ? 'Main' : 'Login' }],
+      });
   }, [isLoading, isAuthenticated]);
 
   if (isLoading) {
@@ -154,14 +223,23 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer ref={navigationRef}>
-      <RootStack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Splash">
+      <RootStack.Navigator
+        screenOptions={{ headerShown: false }}
+        initialRouteName="Splash"
+      >
         <RootStack.Screen name="Splash" component={SplashScreen} />
         <RootStack.Screen name="Onboarding" component={OnboardingScreen} />
         <RootStack.Screen name="Login" component={LoginScreen} />
         <RootStack.Screen name="Register" component={RegisterScreen} />
-        <RootStack.Screen name="RegisterPatient" component={RegisterPatientScreen} />
+        <RootStack.Screen
+          name="RegisterPatient"
+          component={RegisterPatientScreen}
+        />
         <RootStack.Screen name="OTP" component={OTPScreen} />
-        <RootStack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+        <RootStack.Screen
+          name="ForgotPassword"
+          component={ForgotPasswordScreen}
+        />
         <RootStack.Screen name="Main" component={MainEntry} />
       </RootStack.Navigator>
     </NavigationContainer>

@@ -1,21 +1,49 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, MapPin, Pencil, PauseCircle, Plus, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  MapPin,
+  Pencil,
+  PauseCircle,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { stat, SummaryBar, useSummary } from "@/components/SummaryCards";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StatusBadge } from "@/components/ui/badge";
-import { FilterBar, matches, useDebounced } from "@/components/FilterBar";
+import { FilterBar, matches } from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
-import { ActionButton, RowActions } from "@/components/RowActions";
+import { ActionButton } from "@/components/RowActions";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ApiError, complianceAPI } from "@/services/api";
 
-const empty = { name: "", code: "", street: "", city: "", state: "", pincode: "", phone: "" };
+const empty = {
+  name: "",
+  code: "",
+  street: "",
+  city: "",
+  state: "",
+  pincode: "",
+  phone: "",
+};
 
 export default function LocationsPage() {
   const qc = useQueryClient();
@@ -28,8 +56,12 @@ export default function LocationsPage() {
   const [q, setQ] = useState("");
   const [fStatus, setFStatus] = useState("all");
 
-  const { data: clinics } = useQuery({ queryKey: ["clinics"], queryFn: complianceAPI.clinics });
-  const onError = (err: unknown) => toast.error(err instanceof ApiError ? err.message : "Request failed");
+  const { data: clinics } = useQuery({
+    queryKey: ["clinics"],
+    queryFn: complianceAPI.clinics,
+  });
+  const onError = (err: unknown) =>
+    toast.error(err instanceof ApiError ? err.message : "Request failed");
 
   const closeDialog = () => {
     setOpen(false);
@@ -39,11 +71,25 @@ export default function LocationsPage() {
 
   const create = useMutation({
     mutationFn: () => {
-      const address = { street: form.street, city: form.city, state: form.state, pincode: form.pincode };
+      const address = {
+        street: form.street,
+        city: form.city,
+        state: form.state,
+        pincode: form.pincode,
+      };
       // code is the branch's stable identifier, so it is only sent on create
       return editId
-        ? complianceAPI.updateClinic(editId, { name: form.name, phone: form.phone, address })
-        : complianceAPI.createClinic({ name: form.name, code: form.code, phone: form.phone, address });
+        ? complianceAPI.updateClinic(editId, {
+            name: form.name,
+            phone: form.phone,
+            address,
+          })
+        : complianceAPI.createClinic({
+            name: form.name,
+            code: form.code,
+            phone: form.phone,
+            address,
+          });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clinics"] });
@@ -64,32 +110,64 @@ export default function LocationsPage() {
 
   const toggle = useMutation({
     mutationFn: (c: { _id: string; status: "active" | "inactive" }) =>
-      complianceAPI.updateClinic(c._id, { status: c.status === "active" ? "inactive" : "active" }),
+      complianceAPI.updateClinic(c._id, {
+        status: c.status === "active" ? "inactive" : "active",
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["clinics"] }),
     onError,
   });
 
-  const f = (k: keyof typeof empty, label: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => (
+  const f = (
+    k: keyof typeof empty,
+    label: string,
+    props: React.InputHTMLAttributes<HTMLInputElement> = {},
+  ) => (
     <div className="space-y-1.5">
       <Label htmlFor={`loc-${k}`}>{label}</Label>
-      <Input id={`loc-${k}`} value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })} {...props} />
+      <Input
+        id={`loc-${k}`}
+        value={form[k]}
+        onChange={(e) => setForm({ ...form, [k]: e.target.value })}
+        {...props}
+      />
     </div>
   );
 
-  const byCard = (clinics ?? []).filter((c) => (cardKey === "active" || cardKey === "inactive" ? c.status === cardKey : true));
-  const visible = byCard.filter((c) => (fStatus === "all" || c.status === fStatus) && matches(q, c.name, c.code, c.address?.city, c.phone));
+  const byCard = (clinics ?? []).filter((c) =>
+    cardKey === "active" || cardKey === "inactive"
+      ? c.status === cardKey
+      : true,
+  );
+  const visible = byCard.filter(
+    (c) =>
+      (fStatus === "all" || c.status === fStatus) &&
+      matches(q, c.name, c.code, c.address?.city, c.phone),
+  );
 
   return (
     <AppLayout title="Locations">
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-muted-foreground">Branches of your practice. Multi-branch needs the Clinic plan.</p>
-        <Dialog open={open} onOpenChange={(o) => (o ? setOpen(true) : closeDialog())}>
-          <Button onClick={() => { setEditId(null); setForm(empty); setOpen(true); }}>
+        <p className="text-muted-foreground">
+          Branches of your practice. Multi-branch needs the Clinic plan.
+        </p>
+        <Dialog
+          open={open}
+          onOpenChange={(o) => (o ? setOpen(true) : closeDialog())}
+        >
+          <Button
+            onClick={() => {
+              setEditId(null);
+              setForm(empty);
+              setOpen(true);
+            }}
+          >
             <Plus className="h-4 w-4" /> Add location
           </Button>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editId ? "Edit location" : "Add location"}</DialogTitle>
+              <DialogTitle>
+                {editId ? "Edit location" : "Add location"}
+              </DialogTitle>
             </DialogHeader>
             <form
               onSubmit={(e) => {
@@ -99,19 +177,33 @@ export default function LocationsPage() {
               className="space-y-3"
             >
               <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2">{f("name", "Name", { required: true })}</div>
-                {f("code", "Code", { required: true, maxLength: 12, placeholder: "KOTH", disabled: !!editId })}
+                <div className="col-span-2">
+                  {f("name", "Name", { required: true })}
+                </div>
+                {f("code", "Code", {
+                  required: true,
+                  maxLength: 12,
+                  placeholder: "KOTH",
+                  disabled: !!editId,
+                })}
               </div>
               {f("street", "Street")}
               <div className="grid grid-cols-3 gap-3">
                 {f("city", "City")}
                 {f("state", "State")}
-                {f("pincode", "Pincode", { inputMode: "numeric", maxLength: 6 })}
+                {f("pincode", "Pincode", {
+                  inputMode: "numeric",
+                  maxLength: 6,
+                })}
               </div>
               {f("phone", "Phone", { type: "tel" })}
               <DialogFooter>
                 <Button type="submit" disabled={create.isPending}>
-                  {create.isPending ? "Saving..." : editId ? "Save changes" : "Save location"}
+                  {create.isPending
+                    ? "Saving..."
+                    : editId
+                      ? "Save changes"
+                      : "Save location"}
                 </Button>
               </DialogFooter>
             </form>
@@ -121,9 +213,29 @@ export default function LocationsPage() {
 
       <SummaryBar
         cards={[
-          { key: "all", label: "Locations", value: stat(sm?.clinics.total), icon: MapPin, filterable: true },
-          { key: "active", label: "Active", value: stat(sm?.clinics.active), icon: CheckCircle2, color: "#00C48C", filterable: true },
-          { key: "inactive", label: "Inactive", value: stat(sm ? sm.clinics.total - sm.clinics.active : undefined), icon: PauseCircle, color: "#6B7280", filterable: true },
+          {
+            key: "all",
+            label: "Locations",
+            value: stat(sm?.clinics.total),
+            icon: MapPin,
+            filterable: true,
+          },
+          {
+            key: "active",
+            label: "Active",
+            value: stat(sm?.clinics.active),
+            icon: CheckCircle2,
+            color: "#00C48C",
+            filterable: true,
+          },
+          {
+            key: "inactive",
+            label: "Inactive",
+            value: stat(sm ? sm.clinics.total - sm.clinics.active : undefined),
+            icon: PauseCircle,
+            color: "#6B7280",
+            filterable: true,
+          },
         ]}
         active={cardKey}
         onPick={setCardKey}
@@ -136,14 +248,26 @@ export default function LocationsPage() {
         onSearch={setQ}
         placeholder="Search by name, code, city or phone…"
         filters={[
-          { kind: "select", key: "status", label: "Status", value: fStatus, onChange: setFStatus, options: ["active", "inactive"].map((v) => ({ value: v, label: v })) },
+          {
+            kind: "select",
+            key: "status",
+            label: "Status",
+            value: fStatus,
+            onChange: setFStatus,
+            options: ["active", "inactive"].map((v) => ({
+              value: v,
+              label: v,
+            })),
+          },
         ]}
       />
 
       <Card>
         <CardContent className="p-0">
           {!clinics?.length ? (
-            <p className="p-6 text-center text-muted-foreground">No locations yet.</p>
+            <p className="p-6 text-center text-muted-foreground">
+              No locations yet.
+            </p>
           ) : (
             <Table>
               <TableHeader>
@@ -189,8 +313,14 @@ export default function LocationsPage() {
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <ActionButton
-                          label={c.status === "active" ? `Deactivate ${c.name}` : `Activate ${c.name}`}
-                          icon={c.status === "active" ? PauseCircle : CheckCircle2}
+                          label={
+                            c.status === "active"
+                              ? `Deactivate ${c.name}`
+                              : `Activate ${c.name}`
+                          }
+                          icon={
+                            c.status === "active" ? PauseCircle : CheckCircle2
+                          }
                           onClick={() => toggle.mutate(c)}
                         />
                         <Button
@@ -198,7 +328,10 @@ export default function LocationsPage() {
                           size="icon"
                           aria-label={`Delete ${c.name}`}
                           disabled={remove.isPending}
-                          onClick={() => window.confirm(`Delete ${c.name}?`) && remove.mutate(c._id)}
+                          onClick={() =>
+                            window.confirm(`Delete ${c.name}?`) &&
+                            remove.mutate(c._id)
+                          }
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

@@ -28,7 +28,12 @@ export default function ForgotPasswordScreen({ navigation }: any) {
     <View style={[styles.wrap, { backgroundColor: colors.background }]}>
       <Header title="Forgot Password" onBack={() => navigation.goBack()} />
       <View style={styles.content}>
-        <View style={[styles.noteBox, { borderColor: colors.warning, backgroundColor: colors.muted }]}>
+        <View
+          style={[
+            styles.noteBox,
+            { borderColor: colors.warning, backgroundColor: colors.muted },
+          ]}
+        >
           <Info size={16} color={colors.warning} />
           <Text style={[styles.noteText, { color: colors.text }]}>
             UI-only mock. No password-reset endpoint exists on the backend yet.
@@ -37,25 +42,47 @@ export default function ForgotPasswordScreen({ navigation }: any) {
 
         {sent ? (
           <View style={styles.sentBox}>
-            <View style={[styles.sentIcon, { borderColor: colors.border, backgroundColor: colors.success }]}>
+            <View
+              style={[
+                styles.sentIcon,
+                { borderColor: colors.border, backgroundColor: colors.success },
+              ]}
+            >
               <MailCheck size={28} color={colors.white} />
             </View>
-            <Text style={[styles.heading, { color: colors.text }]}>Check your email</Text>
-            <Text style={[styles.subheading, { color: colors.mutedText }]}>
-              If an account exists for {email}, a reset link would be sent (mock).
+            <Text style={[styles.heading, { color: colors.text }]}>
+              Check your email
             </Text>
-            <Button title="Back to Sign In" onPress={() => navigation.replace('Login')} style={styles.btn} />
+            <Text style={[styles.subheading, { color: colors.mutedText }]}>
+              If an account exists for {email}, a reset link would be sent
+              (mock).
+            </Text>
+            <Button
+              title="Back to Sign In"
+              onPress={() => navigation.replace('Login')}
+              style={styles.btn}
+            />
           </View>
         ) : (
           <>
-            <Text style={[styles.heading, { color: colors.text }]}>Reset your password</Text>
+            <Text style={[styles.heading, { color: colors.text }]}>
+              Reset your password
+            </Text>
             <Text style={[styles.subheading, { color: colors.mutedText }]}>
               Enter your email and we'll send you a reset link.
             </Text>
 
             <View style={styles.fieldGroup}>
               <Text style={[styles.label, { color: colors.text }]}>Email</Text>
-              <View style={[styles.inputBorder, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+              <View
+                style={[
+                  styles.inputBorder,
+                  {
+                    borderColor: colors.border,
+                    backgroundColor: colors.surface,
+                  },
+                ]}
+              >
                 <TextInput
                   style={[styles.input, { color: colors.text }]}
                   placeholder="you@example.com"
@@ -68,7 +95,12 @@ export default function ForgotPasswordScreen({ navigation }: any) {
               </View>
             </View>
 
-            <Button title="Send Reset Link" onPress={handleSend} loading={loading} style={styles.btn} />
+            <Button
+              title="Send Reset Link"
+              onPress={handleSend}
+              loading={loading}
+              style={styles.btn}
+            />
           </>
         )}
       </View>
@@ -79,15 +111,41 @@ export default function ForgotPasswordScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   wrap: { flex: 1 },
   content: { padding: 20 },
-  noteBox: { flexDirection: 'row', gap: 10, borderWidth: 2, borderRadius: 8, padding: 12, marginBottom: 22 },
+  noteBox: {
+    flexDirection: 'row',
+    gap: 10,
+    borderWidth: 2,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 22,
+  },
   noteText: { fontSize: 12, fontWeight: '600', flex: 1, lineHeight: 17 },
   heading: { fontSize: 20, fontWeight: '900' },
-  subheading: { fontSize: 13, fontWeight: '500', marginTop: 4, marginBottom: 22, lineHeight: 18 },
+  subheading: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginTop: 4,
+    marginBottom: 22,
+    lineHeight: 18,
+  },
   fieldGroup: { marginBottom: 20 },
-  label: { fontSize: 12, fontWeight: '800', textTransform: 'uppercase', marginBottom: 6 },
+  label: {
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
   inputBorder: { borderWidth: 2, borderRadius: 8, paddingHorizontal: 12 },
   input: { height: 46, fontSize: 14, fontWeight: '600' },
   btn: { marginTop: 4 },
   sentBox: { alignItems: 'center', paddingTop: 20 },
-  sentIcon: { width: 64, height: 64, borderWidth: 2, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginBottom: 18 },
+  sentIcon: {
+    width: 64,
+    height: 64,
+    borderWidth: 2,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 18,
+  },
 });

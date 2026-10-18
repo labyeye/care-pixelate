@@ -16,7 +16,12 @@ export interface ClinicLocation {
   _id: string;
   name: string;
   code: string;
-  address?: { street?: string; city?: string; state?: string; pincode?: string };
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+  };
   phone?: string;
   status: "active" | "inactive";
 }
@@ -45,9 +50,21 @@ export interface ScribeDraft {
   complaints: string;
   diagnosis: string[];
   notes: string;
-  vitals: { bp?: string; pulse?: number; tempC?: number; spo2?: number; weightKg?: number };
+  vitals: {
+    bp?: string;
+    pulse?: number;
+    tempC?: number;
+    spo2?: number;
+    weightKg?: number;
+  };
   prescription: {
-    items: { drug: string; dose?: string; frequency?: string; days?: number; instructions?: string }[];
+    items: {
+      drug: string;
+      dose?: string;
+      frequency?: string;
+      days?: number;
+      instructions?: string;
+    }[];
     advice?: string;
   };
   followUpInDays: number | null;

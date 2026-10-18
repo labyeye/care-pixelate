@@ -2,7 +2,12 @@ const mongoose = require("mongoose");
 
 const vendorSchema = new mongoose.Schema(
   {
-    tenantId: { type: mongoose.Schema.Types.ObjectId, ref: "Tenant", required: true, index: true },
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tenant",
+      required: true,
+      index: true,
+    },
     vendorId: { type: String, required: true, trim: true },
     vendorType: {
       type: String,
@@ -31,7 +36,15 @@ const vendorSchema = new mongoose.Schema(
     drugLicenseExpiry: { type: Date, default: null },
     paymentTerms: {
       type: String,
-      enum: ["immediate", "7_days", "15_days", "30_days", "45_days", "60_days", "custom"],
+      enum: [
+        "immediate",
+        "7_days",
+        "15_days",
+        "30_days",
+        "45_days",
+        "60_days",
+        "custom",
+      ],
       default: "immediate",
     },
     creditLimit: { type: Number, min: 0, default: 0 },
@@ -43,8 +56,16 @@ const vendorSchema = new mongoose.Schema(
       bankName: { type: String, default: "" },
     },
     notes: { type: String, default: "" },
-    status: { type: String, enum: ["active", "inactive", "blocked"], default: "active" },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    status: {
+      type: String,
+      enum: ["active", "inactive", "blocked"],
+      default: "active",
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   { timestamps: true },
 );

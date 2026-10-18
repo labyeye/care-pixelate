@@ -23,6 +23,7 @@ import {
   Users,
   Wallet,
   ClipboardPlus,
+  Repeat,
 } from "lucide-react";
 import type { UserRole } from "@/types";
 
@@ -63,6 +64,7 @@ const TENANT_ADMIN_NAV: NavGroup[] = [
       { label: "Appointments", href: "/appointments", icon: CalendarDays },
       { label: "Calendar", href: "/calendar", icon: CalendarRange },
       { label: "Consultations", href: "/consultations", icon: ClipboardPlus },
+      { label: "Follow-ups", href: "/follow-ups", icon: Repeat },
       { label: "Lab Orders", href: "/lab-orders", icon: FlaskConical },
       { label: "Medicines", href: "/medicines", icon: Pill },
       { label: "Vendors", href: "/vendors", icon: Truck },
@@ -97,7 +99,9 @@ const TENANT_ADMIN_NAV: NavGroup[] = [
 const DOCTOR_NAV: NavGroup[] = [
   {
     label: "Overview",
-    items: [{ label: "Today's Patients", href: "/dashboard", icon: LayoutDashboard }],
+    items: [
+      { label: "Today's Patients", href: "/dashboard", icon: LayoutDashboard },
+    ],
   },
   {
     label: "My Work",
@@ -105,6 +109,7 @@ const DOCTOR_NAV: NavGroup[] = [
       { label: "Appointments", href: "/appointments", icon: CalendarDays },
       { label: "Calendar", href: "/calendar", icon: CalendarRange },
       { label: "Consultations", href: "/consultations", icon: ClipboardPlus },
+      { label: "Follow-ups", href: "/follow-ups", icon: Repeat },
       { label: "Patients", href: "/patients", icon: Users },
       { label: "Lab Orders", href: "/lab-orders", icon: FlaskConical },
     ],
@@ -142,7 +147,9 @@ const PATIENT_NAV: NavGroup[] = [
   },
   {
     label: "Account",
-    items: [{ label: "Profile & Family", href: "/my/profile", icon: UserRound }],
+    items: [
+      { label: "Profile & Family", href: "/my/profile", icon: UserRound },
+    ],
   },
 ];
 
@@ -152,24 +159,45 @@ const SOLO_HIDDEN = new Set(["/locations"]);
 
 // Menu entry -> permission key (utils/permissions.js on the server uses the same keys).
 const HREF_PAGE: Record<string, string> = {
-  "/dashboard": "dashboard", "/patients": "patients", "/doctors": "doctors", "/appointments": "appointments",
-  "/calendar": "calendar", "/consultations": "consultations", "/invoices": "invoices", "/lab-orders": "lab-orders", "/medicines": "medicines", "/vendors": "medicines", "/analytics": "analytics",
-  "/reports": "reports", "/locations": "locations", "/audit-log": "audit-log", "/staff": "staff", "/password-reset": "password-reset",
-  "/billing": "billing", "/settings": "settings",
+  "/dashboard": "dashboard",
+  "/patients": "patients",
+  "/doctors": "doctors",
+  "/appointments": "appointments",
+  "/calendar": "calendar",
+  "/follow-ups": "appointments",
+  "/consultations": "consultations",
+  "/invoices": "invoices",
+  "/lab-orders": "lab-orders",
+  "/medicines": "medicines",
+  "/vendors": "medicines",
+  "/analytics": "analytics",
+  "/reports": "reports",
+  "/locations": "locations",
+  "/audit-log": "audit-log",
+  "/staff": "staff",
+  "/password-reset": "password-reset",
+  "/billing": "billing",
+  "/settings": "settings",
 };
 
 /** Which permission page(s) a URL belongs to, so a route can be guarded the same way the menu is. */
 /** True for the clinic-staff pages (anything with a permission key) — patients are never allowed on these. */
-export const isStaffPath = (pathname: string) => pagesForPath(pathname) !== null;
+export const isStaffPath = (pathname: string) =>
+  pagesForPath(pathname) !== null;
 
 export function pagesForPath(pathname: string): string[] | null {
   const seg = "/" + pathname.split("/")[1];
-  if (seg === "/consultation") return ["consultations", "appointments", "calendar"]; // a single consultation, opened from the list or an appointment
+  if (seg === "/consultation")
+    return ["consultations", "appointments", "calendar"]; // a single consultation, opened from the list or an appointment
   const key = HREF_PAGE[seg];
   return key ? [key] : null;
 }
 
-export function getNavGroupsForRole(role: UserRole, orgType?: string, pages?: string[] | null): NavGroup[] {
+export function getNavGroupsForRole(
+  role: UserRole,
+  orgType?: string,
+  pages?: string[] | null,
+): NavGroup[] {
   // Clinic staff: one shared menu, filtered by what the owner granted to this role.
   const staffRole = role !== "super_admin" && role !== "patient";
   let groups = navForRole(role);
@@ -184,7 +212,10 @@ export function getNavGroupsForRole(role: UserRole, orgType?: string, pages?: st
     })).filter((g) => g.items.length > 0);
   }
   if (orgType !== "individual_doctor") return groups;
-  return groups.map((g) => ({ ...g, items: g.items.filter((i) => !SOLO_HIDDEN.has(i.href)) }));
+  return groups.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => !SOLO_HIDDEN.has(i.href)),
+  }));
 }
 
 function navForRole(role: UserRole): NavGroup[] {

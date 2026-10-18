@@ -10,7 +10,8 @@ const cell = (v) => {
 // columns: [{ key, label }], rows: [{ [key]: value }]
 function toCsv(columns, rows) {
   const lines = [columns.map((c) => cell(c.label)).join(",")];
-  for (const r of rows) lines.push(columns.map((c) => cell(r[c.key])).join(","));
+  for (const r of rows)
+    lines.push(columns.map((c) => cell(r[c.key])).join(","));
   return "﻿" + lines.join("\r\n") + "\r\n"; // BOM so Excel reads UTF-8 names correctly
 }
 
@@ -23,6 +24,15 @@ if (require.main === module) {
   assert.strictEqual(cell("-5"), "-5"); // plain negative numbers stay numbers
   assert.strictEqual(cell("-cmd"), "'-cmd");
   assert.strictEqual(cell(null), "");
-  assert.strictEqual(toCsv([{ key: "a", label: "A" }, { key: "b", label: "B" }], [{ a: 1, b: "x,y" }]), "﻿A,B\r\n1,\"x,y\"\r\n");
+  assert.strictEqual(
+    toCsv(
+      [
+        { key: "a", label: "A" },
+        { key: "b", label: "B" },
+      ],
+      [{ a: 1, b: "x,y" }],
+    ),
+    '﻿A,B\r\n1,"x,y"\r\n',
+  );
   console.log("csv ok");
 }

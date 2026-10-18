@@ -98,10 +98,12 @@ const doctorSchema = new mongoose.Schema(
         },
       ],
 
-      specializations: [{
-        type: String,
-        trim: true,
-      }],
+      specializations: [
+        {
+          type: String,
+          trim: true,
+        },
+      ],
 
       experienceYears: {
         type: Number,
@@ -114,20 +116,26 @@ const doctorSchema = new mongoose.Schema(
         default: "",
       },
 
-      languages: [{
-        type: String,
-      }],
+      languages: [
+        {
+          type: String,
+        },
+      ],
     },
 
-    clinicIds: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Clinic",
-    }],
+    clinicIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Clinic",
+      },
+    ],
 
-    departmentIds: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Department",
-    }],
+    departmentIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Department",
+      },
+    ],
 
     consultation: {
       consultationFee: {
@@ -153,10 +161,12 @@ const doctorSchema = new mongoose.Schema(
         default: 15,
       },
 
-      consultationModes: [{
-        type: String,
-        enum: ["in_person", "video"],
-      }],
+      consultationModes: [
+        {
+          type: String,
+          enum: ["in_person", "video"],
+        },
+      ],
 
       acceptingAppointments: {
         type: Boolean,
@@ -206,13 +216,14 @@ const doctorSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 );
 
-doctorSchema.index(
-  { tenantId: 1, doctorId: 1 },
-  { unique: true }
-);
+doctorSchema.index({ tenantId: 1, doctorId: 1 }, { unique: true });
 
 doctorSchema.index({
   tenantId: 1,
@@ -221,7 +232,9 @@ doctorSchema.index({
 
 // Display name for lists / print-outs. Needs firstName + lastName in any `.select()`.
 doctorSchema.virtual("name").get(function () {
-  return [this.firstName, this.middleName, this.lastName].filter(Boolean).join(" ");
+  return [this.firstName, this.middleName, this.lastName]
+    .filter(Boolean)
+    .join(" ");
 });
 
 module.exports = mongoose.model("Doctor", doctorSchema);

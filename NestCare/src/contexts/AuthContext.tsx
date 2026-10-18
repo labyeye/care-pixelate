@@ -92,7 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await storage.setItem('user', JSON.stringify(res.data.user));
     setUser(res.data.user);
     setTenant(res.data.tenant ?? null);
-    authAPI.getMe().then(m => setPages((m.data as any).pages ?? null)).catch(() => {});
+    authAPI
+      .getMe()
+      .then(m => setPages((m.data as any).pages ?? null))
+      .catch(() => {});
   };
 
   const register = async (payload: RegisterPayload) => {

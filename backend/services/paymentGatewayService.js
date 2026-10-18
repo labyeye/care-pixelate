@@ -37,7 +37,10 @@ function requireCreds(creds, fields, gateway) {
 }
 
 // ---------------------------------------------------------------- Cashfree
-async function cashfreeCreateOrder({ amount, orderId, customer, returnUrl }, creds) {
+async function cashfreeCreateOrder(
+  { amount, orderId, customer, returnUrl },
+  creds,
+) {
   requireCreds(creds, ["appId", "secretKey"], "Cashfree");
   const res = await fetch(`${CASHFREE_BASE}/orders`, {
     method: "POST",
@@ -101,7 +104,10 @@ async function cashfreeCheckStatus(orderId, creds) {
 }
 
 // ----------------------------------------------------------------- PhonePe
-async function phonepeCreateOrder({ amount, orderId, customer, returnUrl }, creds) {
+async function phonepeCreateOrder(
+  { amount, orderId, customer, returnUrl },
+  creds,
+) {
   requireCreds(creds, ["merchantId", "saltKey"], "PhonePe");
   const saltIndex = creds.saltIndex || "1";
 
@@ -114,9 +120,7 @@ async function phonepeCreateOrder({ amount, orderId, customer, returnUrl }, cred
     redirectMode: "REDIRECT",
     paymentInstrument: { type: "PAY_PAGE" },
   };
-  const base64Payload = Buffer.from(JSON.stringify(payload)).toString(
-    "base64",
-  );
+  const base64Payload = Buffer.from(JSON.stringify(payload)).toString("base64");
   const checksum =
     crypto
       .createHash("sha256")
@@ -177,13 +181,17 @@ async function phonepeCheckStatus(orderId, creds) {
 }
 
 // ------------------------------------------------------------------ Paytm
-async function paytmCreateOrder({ amount, orderId, customer, returnUrl }, creds) {
+async function paytmCreateOrder(
+  { amount, orderId, customer, returnUrl },
+  creds,
+) {
   requireCreds(creds, ["merchantId", "merchantKey"], "Paytm");
 
   const body = {
     requestType: "Payment",
     mid: creds.merchantId,
-    websiteName: process.env.PAYTM_ENV === "production" ? "DEFAULT" : "WEBSTAGING",
+    websiteName:
+      process.env.PAYTM_ENV === "production" ? "DEFAULT" : "WEBSTAGING",
     orderId,
     callbackUrl: returnUrl,
     txnAmount: { value: amount.toFixed(2), currency: "INR" },
@@ -228,14 +236,11 @@ async function paytmCheckStatus(orderId, creds) {
     JSON.stringify(body),
     creds.merchantKey,
   );
-  const res = await fetch(
-    `${PAYTM_BASE}/v3/order/status`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body, head: { signature: checksum } }),
-    },
-  );
+  const res = await fetch(`${PAYTM_BASE}/v3/order/status`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ body, head: { signature: checksum } }),
+  });
   const data = await res.json();
   return {
     isSuccess: data?.body?.resultInfo?.resultStatus === "TXN_SUCCESS",
@@ -247,19 +252,31 @@ async function paytmCheckStatus(orderId, creds) {
 // --------------------------------------------------------------- Dispatch
 // creds is the shape stored in Setting, already picked per gateway by the
 // caller (see controllers' getCompanyPaymentCreds helper).
-async function createOrder(gateway, creds, { amount, orderId, customer, returnUrl }) {
+async function createOrder(
+  gateway,
+  creds,
+  { amount, orderId, customer, returnUrl },
+) {
   switch (gateway) {
     case "cashfree":
-      return cashfreeCreateOrder({ amount, orderId, customer, returnUrl }, creds);
+      return cashfreeCreateOrder(
+        { amount, orderId, customer, returnUrl },
+        creds,
+      );
     case "phonepe":
-      return phonepeCreateOrder({ amount, orderId, customer, returnUrl }, creds);
+      return phonepeCreateOrder(
+        { amount, orderId, customer, returnUrl },
+        creds,
+      );
     case "paytm":
       return paytmCreateOrder({ amount, orderId, customer, returnUrl }, creds);
     case "razorpay":
     default: {
       const result = await razorpayService.createOrder(
         { amount, receipt: orderId, notes: { orderId } },
-        creds ? { key_id: creds.keyId, key_secret: creds.keySecret } : undefined,
+        creds
+          ? { key_id: creds.keyId, key_secret: creds.keySecret }
+          : undefined,
       );
       return {
         gateway: "razorpay",
@@ -290,7 +307,9 @@ async function confirmPayment(gateway, creds, providerOrderId, payload) {
     default: {
       const isValid = razorpayService.verifySignature(
         payload,
-        creds ? { key_id: creds.keyId, key_secret: creds.keySecret } : undefined,
+        creds
+          ? { key_id: creds.keyId, key_secret: creds.keySecret }
+          : undefined,
       );
       return { isSuccess: isValid, status: isValid ? "PAID" : "FAILED" };
     }

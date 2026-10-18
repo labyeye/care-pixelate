@@ -14,7 +14,12 @@ export default function Card({ children, style, noShadow }: CardProps) {
     <View
       style={[
         styles.card,
-        { backgroundColor: colors.surface, borderColor: colors.border, borderRightColor: '#0A0A0A', borderBottomColor: '#0A0A0A' },
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          borderRightColor: '#0A0A0A',
+          borderBottomColor: '#0A0A0A',
+        },
         style,
       ]}
     >

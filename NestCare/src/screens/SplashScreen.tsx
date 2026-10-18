@@ -24,7 +24,12 @@ export default function SplashScreen({ navigation }: any) {
 
   return (
     <View style={[styles.wrap, { backgroundColor: colors.primary }]}>
-      <View style={[styles.logoBox, { borderColor: colors.border, backgroundColor: colors.white }]}>
+      <View
+        style={[
+          styles.logoBox,
+          { borderColor: colors.border, backgroundColor: colors.white },
+        ]}
+      >
         <HeartPulse size={40} color={colors.primary} />
       </View>
       <Text style={[styles.wordmark, { color: colors.white }]}>NestCare</Text>

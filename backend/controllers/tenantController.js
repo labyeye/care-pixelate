@@ -55,7 +55,10 @@ const updateTenant = asyncHandler(async (req, res) => {
     }
     update.slug = code;
   }
-  for (const [field, value] of [["invoiceTemplate", invoiceTemplate], ["consultationTemplate", consultationTemplate]]) {
+  for (const [field, value] of [
+    ["invoiceTemplate", invoiceTemplate],
+    ["consultationTemplate", consultationTemplate],
+  ]) {
     if (value === undefined) continue;
     try {
       update[field] = value === null ? null : sanitizeInvoiceTemplate(value);
@@ -64,13 +67,28 @@ const updateTenant = asyncHandler(async (req, res) => {
       throw err;
     }
   }
-  const MODULES = ["patients", "doctors", "appointments", "billing", "lab", "video", "ai_scribe"];
-  if (Array.isArray(activeModules)) update.activeModules = [...new Set(activeModules.filter((m) => MODULES.includes(m)))];
+  const MODULES = [
+    "patients",
+    "doctors",
+    "appointments",
+    "billing",
+    "lab",
+    "video",
+    "ai_scribe",
+  ];
+  if (Array.isArray(activeModules))
+    update.activeModules = [
+      ...new Set(activeModules.filter((m) => MODULES.includes(m))),
+    ];
 
-  const tenant = await Tenant.findByIdAndUpdate(tenantId, { $set: update }, {
-    new: true,
-    runValidators: true,
-  });
+  const tenant = await Tenant.findByIdAndUpdate(
+    tenantId,
+    { $set: update },
+    {
+      new: true,
+      runValidators: true,
+    },
+  );
   if (!tenant) {
     res.status(404);
     throw new Error("Tenant not found");
@@ -81,12 +99,21 @@ const updateTenant = asyncHandler(async (req, res) => {
 
 const matrix = (tenant) => {
   const current = {};
-  for (const role of P.EDITABLE_ROLES) current[role] = P.effectivePages(role, tenant.rolePermissions);
+  for (const role of P.EDITABLE_ROLES)
+    current[role] = P.effectivePages(role, tenant.rolePermissions);
   return {
-    pages: P.PAGE_KEYS.map((key) => ({ key, ...P.PAGES[key], mandatoryFor: P.EDITABLE_ROLES.filter((r) => P.mandatoryFor(r).includes(key)) })),
+    pages: P.PAGE_KEYS.map((key) => ({
+      key,
+      ...P.PAGES[key],
+      mandatoryFor: P.EDITABLE_ROLES.filter((r) =>
+        P.mandatoryFor(r).includes(key),
+      ),
+    })),
     roles: P.EDITABLE_ROLES,
     current,
-    defaults: Object.fromEntries(P.EDITABLE_ROLES.map((r) => [r, P.effectivePages(r, undefined)])),
+    defaults: Object.fromEntries(
+      P.EDITABLE_ROLES.map((r) => [r, P.effectivePages(r, undefined)]),
+    ),
   };
 };
 
@@ -118,9 +145,21 @@ const updatePermissions = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Tenant not found");
   }
-  const merged = req.body.reset === true ? {} : { ...(tenant.rolePermissions || {}), ...next };
-  const saved = await Tenant.findByIdAndUpdate(req.tenantId, { $set: { rolePermissions: merged } }, { new: true }).select("rolePermissions");
+  const merged =
+    req.body.reset === true
+      ? {}
+      : { ...(tenant.rolePermissions || {}), ...next };
+  const saved = await Tenant.findByIdAndUpdate(
+    req.tenantId,
+    { $set: { rolePermissions: merged } },
+    { new: true },
+  ).select("rolePermissions");
   res.json({ success: true, data: matrix(saved) });
 });
 
-module.exports = { getCurrentTenant, updateTenant, getPermissions, updatePermissions };
+module.exports = {
+  getCurrentTenant,
+  updateTenant,
+  getPermissions,
+  updatePermissions,
+};

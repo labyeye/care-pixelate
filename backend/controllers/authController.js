@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
 const asyncHandler = require("express-async-handler");
@@ -18,10 +19,27 @@ const { sendWhatsAppOtp, sendPasswordResetEmail } = require("../utils/notify");
 const ACCESS_COOKIE_MAX_AGE = 15 * 60 * 1000;
 const TEN_MIN = 10 * 60 * 1000;
 
-const signToken = (id) =>
-  jwt.sign({ id }, process.env.JWT_SECRET, {
+// `tv` = token version (see User.tokenVersion); `ssa` = when the login happened, kept across refreshes so a
+// stolen cookie can't be refreshed forever.
+const SESSION_MAX_MS = (Number(process.env.SESSION_MAX_HOURS) || 24) * 60 * 60 * 1000;
+const signToken = (user, ssa = Math.floor(Date.now() / 1000)) =>
+  jwt.sign({ id: user._id, tv: user.tokenVersion || 0, ssa }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || "15m",
+    algorithm: "HS256",
   });
+
+// Valid bcrypt hash used only to burn the same time as a real comparison when the e-mail is unknown.
+const DUMMY_HASH = "$2a$12$CwTycUXWue0Thq9StjUM0uJ8.G1c/3d1Hn5X9lq0Yx1y6k8mQ5G1e";
+
+// OTPs are HMAC-keyed with the server secret (a leaked DB can't be reversed offline: 6 digits = 10^6 guesses) and
+// compared in constant time.
+const otpHash = (otp) => crypto.createHmac("sha256", process.env.JWT_SECRET).update(`otp:${otp}`).digest("hex");
+const sameHash = (a, b) => {
+  const x = Buffer.from(String(a || ""));
+  const y = Buffer.from(String(b || ""));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
+};
+const MAX_OTP_TRIES = 5;
 
 const setAuthCookies = (res, token) => {
   const csrfToken = crypto.randomBytes(24).toString("hex");
@@ -53,7 +71,9 @@ const generateOtp = () => String(crypto.randomInt(100000, 1000000));
 
 // Match however the number was typed (10 digits, +91, 91 prefix).
 const phoneVariants = (raw) => {
-  const n = String(raw || "").replace(/\D/g, "").slice(-10);
+  const n = String(raw || "")
+    .replace(/\D/g, "")
+    .slice(-10);
   return [n, `+91${n}`, `91${n}`];
 };
 const waNumber = (raw) => `91${String(raw).replace(/\D/g, "").slice(-10)}`;
@@ -66,7 +86,7 @@ const signPending = (id) =>
   jwt.sign({ id, purpose: "2fa" }, pendingSecret(), { expiresIn: "5m" });
 
 const sendSession = (res, user) => {
-  const token = signToken(user._id);
+  const token = signToken(user);
   setAuthCookies(res, token);
   res.json({
     success: true,
@@ -93,12 +113,25 @@ const assertActive = (res, user) => {
 // @desc    Register a new organisation + its owner user
 // @route   POST /api/auth/register-tenant
 const registerTenant = asyncHandler(async (req, res) => {
-  const { orgName, orgType, ownerName, password, phone, city, state, gstin } = req.body;
-  const doctorCount = Math.min(Math.max(parseInt(req.body.doctorCount, 10) || 1, 1), 1000);
+  const { orgName, orgType, ownerName, password, phone, city, state, gstin } =
+    req.body;
+  const doctorCount = Math.min(
+    Math.max(parseInt(req.body.doctorCount, 10) || 1, 1),
+    1000,
+  );
 
-  if (!orgName || !orgType || !ownerName || !req.body.email || !password || !phone) {
+  if (
+    !orgName ||
+    !orgType ||
+    !ownerName ||
+    !req.body.email ||
+    !password ||
+    !phone
+  ) {
     res.status(400);
-    throw new Error("Organisation, your name, email, phone and password are required");
+    throw new Error(
+      "Organisation, your name, email, phone and password are required",
+    );
   }
   if (!Tenant.schema.path("orgType").enumValues.includes(orgType)) {
     res.status(400);
@@ -109,7 +142,9 @@ const registerTenant = asyncHandler(async (req, res) => {
     throw new Error("Please accept the Terms and Privacy Policy");
   }
 
-  const email = validator.normalizeEmail(String(req.body.email)) || String(req.body.email).toLowerCase().trim();
+  const email =
+    validator.normalizeEmail(String(req.body.email)) ||
+    String(req.body.email).toLowerCase().trim();
   if (!validator.isEmail(email)) {
     res.status(400);
     throw new Error("Please provide a valid email address");
@@ -121,13 +156,22 @@ const registerTenant = asyncHandler(async (req, res) => {
   }
   if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,128}$/.test(String(password))) {
     res.status(400);
-    throw new Error("Password must be at least 8 characters with uppercase, lowercase and a number");
+    throw new Error(
+      "Password must be at least 8 characters with uppercase, lowercase and a number",
+    );
   }
   const owner = String(ownerName).trim();
   const org = String(orgName).trim();
-  if (owner.length < 2 || owner.length > 80 || org.length < 2 || org.length > 120) {
+  if (
+    owner.length < 2 ||
+    owner.length > 80 ||
+    org.length < 2 ||
+    org.length > 120
+  ) {
     res.status(400);
-    throw new Error("Name (2-80) and organisation name (2-120) have invalid lengths");
+    throw new Error(
+      "Name (2-80) and organisation name (2-120) have invalid lengths",
+    );
   }
 
   if (await User.findOne({ email })) {
@@ -155,28 +199,55 @@ const registerTenant = asyncHandler(async (req, res) => {
       slug,
       orgType,
       ownerUser: user._id,
-      contact: { email, phone: phone10, city: String(city || "").trim(), state: String(state || "").trim() },
-      gstDetails: { gstin: String(gstin || "").trim().toUpperCase() },
-      limits: { doctorLimit: TRIAL.doctorLimit, patientLimit: TRIAL.patientLimit },
+      contact: {
+        email,
+        phone: phone10,
+        city: String(city || "").trim(),
+        state: String(state || "").trim(),
+      },
+      gstDetails: {
+        gstin: String(gstin || "")
+          .trim()
+          .toUpperCase(),
+      },
+      limits: {
+        doctorLimit: TRIAL.doctorLimit,
+        patientLimit: TRIAL.patientLimit,
+      },
       planExpiresAt: new Date(Date.now() + TRIAL.days * 24 * 60 * 60 * 1000),
       profile: { expectedDoctors: doctorCount, termsAcceptedAt: new Date() },
     });
     user.tenantId = tenant._id;
     await user.save({ validateBeforeSave: false });
-    await Subscription.create({ tenant: tenant._id, plan: "trial", status: "trialing", doctors: TRIAL.doctorLimit, currentPeriodEnd: tenant.planExpiresAt });
+    await Subscription.create({
+      tenant: tenant._id,
+      plan: "trial",
+      status: "trialing",
+      doctors: TRIAL.doctorLimit,
+      currentPeriodEnd: tenant.planExpiresAt,
+    });
   } catch (err) {
     // No replica-set transactions on the shared Mongo; undo manually so no orphan user/tenant is left.
-    await Promise.allSettled([User.deleteOne({ _id: userId }), tenant && Tenant.deleteOne({ _id: tenant._id })]);
+    await Promise.allSettled([
+      User.deleteOne({ _id: userId }),
+      tenant && Tenant.deleteOne({ _id: tenant._id }),
+    ]);
     throw err;
   }
 
-  const token = signToken(user._id);
+  const token = signToken(user);
   setAuthCookies(res, token);
 
   res.status(201).json({
     success: true,
     data: {
-      user: { id: user._id, name: user.name, email: user.email, role: user.role, tenantId: tenant._id },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        tenantId: tenant._id,
+      },
       tenant,
       token, // mobile clients have no cookie jar for httpOnly cookies — store this as a Bearer token instead
     },
@@ -191,21 +262,35 @@ const registerAccount = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error(msg);
   };
-  if (!name || !req.body.email || !password || !phone) fail("Name, email, mobile number and password are required");
-  if (req.body.acceptTerms !== true) fail("Please accept the Terms and Privacy Policy");
+  if (!name || !req.body.email || !password || !phone)
+    fail("Name, email, mobile number and password are required");
+  if (req.body.acceptTerms !== true)
+    fail("Please accept the Terms and Privacy Policy");
 
-  const email = validator.normalizeEmail(String(req.body.email)) || String(req.body.email).toLowerCase().trim();
+  const email =
+    validator.normalizeEmail(String(req.body.email)) ||
+    String(req.body.email).toLowerCase().trim();
   if (!validator.isEmail(email)) fail("Please provide a valid email address");
   const phone10 = String(phone).replace(/\D/g, "").slice(-10);
   if (phone10.length !== 10) fail("Enter a valid 10-digit phone number");
   if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,128}$/.test(String(password))) {
-    fail("Password must be at least 8 characters with uppercase, lowercase and a number");
+    fail(
+      "Password must be at least 8 characters with uppercase, lowercase and a number",
+    );
   }
   const owner = String(name).trim();
-  if (owner.length < 2 || owner.length > 80) fail("Name must be 2-80 characters");
-  if (await User.findOne({ email })) fail("An account with that email already exists");
+  if (owner.length < 2 || owner.length > 80)
+    fail("Name must be 2-80 characters");
+  if (await User.findOne({ email }))
+    fail("An account with that email already exists");
 
-  const user = await User.create({ name: owner, email, password, role: "tenant_owner", phone: phone10 });
+  const user = await User.create({
+    name: owner,
+    email,
+    password,
+    role: "tenant_owner",
+    phone: phone10,
+  });
   sendSession(res.status(201), user);
 });
 
@@ -220,31 +305,52 @@ const onboard = asyncHandler(async (req, res) => {
   if (user.tenantId) fail("Your organisation is already set up", 409);
 
   const { orgName, orgType, city, state, gstin } = req.body;
-  const doctorCount = Math.min(Math.max(parseInt(req.body.doctorCount, 10) || 1, 1), 1000);
+  const doctorCount = Math.min(
+    Math.max(parseInt(req.body.doctorCount, 10) || 1, 1),
+    1000,
+  );
   const org = String(orgName || "").trim();
-  if (org.length < 2 || org.length > 120) fail("Organisation name must be 2-120 characters");
-  if (!Tenant.schema.path("orgType").enumValues.includes(orgType)) fail("Invalid organisation type");
-  if (!String(city || "").trim() || !String(state || "").trim()) fail("City and state are required");
-  const gst = String(gstin || "").trim().toUpperCase();
-  if (gst && !/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gst)) fail("Invalid GSTIN format");
+  if (org.length < 2 || org.length > 120)
+    fail("Organisation name must be 2-120 characters");
+  if (!Tenant.schema.path("orgType").enumValues.includes(orgType))
+    fail("Invalid organisation type");
+  if (!String(city || "").trim() || !String(state || "").trim())
+    fail("City and state are required");
+  const gst = String(gstin || "")
+    .trim()
+    .toUpperCase();
+  if (gst && !/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gst))
+    fail("Invalid GSTIN format");
 
   // Solo practitioner: the owner is also the doctor, so the registration details are needed now.
   const solo = orgType === "individual_doctor";
   const regNo = String(req.body.registrationNumber || "").trim();
   const council = String(req.body.registrationCouncil || "").trim();
-  if (solo && (regNo.length < 2 || regNo.length > 40 || council.length < 2 || council.length > 100)) {
-    fail("Medical registration number and council are required for an individual doctor");
+  if (
+    solo &&
+    (regNo.length < 2 ||
+      regNo.length > 40 ||
+      council.length < 2 ||
+      council.length > 100)
+  ) {
+    fail(
+      "Medical registration number and council are required for an individual doctor",
+    );
   }
   const fee = Number(req.body.consultationFee ?? 0);
-  if (!Number.isFinite(fee) || fee < 0 || fee > 100000) fail("Consultation fee must be a valid amount");
+  if (!Number.isFinite(fee) || fee < 0 || fee > 100000)
+    fail("Consultation fee must be a valid amount");
 
   // Optional custom clinic code (what patients type in the app); otherwise a derived, collision-free one.
   let slug = `${slugify(org) || "org"}-${user._id.toString().slice(-6)}`;
-  const wanted = String(req.body.clinicCode || "").trim().toLowerCase();
+  const wanted = String(req.body.clinicCode || "")
+    .trim()
+    .toLowerCase();
   if (wanted) {
     const bad = clinicCodeError(wanted);
     if (bad) fail(bad);
-    if (await Tenant.exists({ slug: wanted })) fail("That clinic code is already taken", 409);
+    if (await Tenant.exists({ slug: wanted }))
+      fail("That clinic code is already taken", 409);
     slug = wanted;
   }
 
@@ -256,15 +362,29 @@ const onboard = asyncHandler(async (req, res) => {
       slug,
       orgType,
       ownerUser: user._id,
-      contact: { email: user.email, phone: user.phone, city: String(city).trim(), state: String(state).trim() },
+      contact: {
+        email: user.email,
+        phone: user.phone,
+        city: String(city).trim(),
+        state: String(state).trim(),
+      },
       gstDetails: { gstin: gst },
-      limits: { doctorLimit: TRIAL.doctorLimit, patientLimit: TRIAL.patientLimit },
+      limits: {
+        doctorLimit: TRIAL.doctorLimit,
+        patientLimit: TRIAL.patientLimit,
+      },
       planExpiresAt: new Date(Date.now() + TRIAL.days * 24 * 60 * 60 * 1000),
-      profile: { expectedDoctors: solo ? 1 : doctorCount, termsAcceptedAt: new Date() },
+      profile: {
+        expectedDoctors: solo ? 1 : doctorCount,
+        termsAcceptedAt: new Date(),
+      },
       ...(solo && { counters: { doctor: 1 } }),
     });
     if (solo) {
-      const parts = user.name.replace(/^dr\.?\s+/i, "").trim().split(/\s+/);
+      const parts = user.name
+        .replace(/^dr\.?\s+/i, "")
+        .trim()
+        .split(/\s+/);
       doctor = await Doctor.create({
         tenantId: tenant._id,
         doctorId: "DR-0001",
@@ -273,17 +393,32 @@ const onboard = asyncHandler(async (req, res) => {
         middleName: parts.slice(1, -1).join(" "),
         lastName: parts.length > 1 ? parts[parts.length - 1] : "-",
         contact: { phone: user.phone, email: user.email },
-        professionalDetails: { registrationNumber: regNo, registrationCouncil: council },
-        consultation: { consultationFee: fee, consultationModes: ["in_person"] },
+        professionalDetails: {
+          registrationNumber: regNo,
+          registrationCouncil: council,
+        },
+        consultation: {
+          consultationFee: fee,
+          consultationModes: ["in_person"],
+        },
         createdBy: user._id,
       });
     }
     user.tenantId = tenant._id;
     await user.save({ validateBeforeSave: false });
-    await Subscription.create({ tenant: tenant._id, plan: "trial", status: "trialing", doctors: TRIAL.doctorLimit, currentPeriodEnd: tenant.planExpiresAt });
+    await Subscription.create({
+      tenant: tenant._id,
+      plan: "trial",
+      status: "trialing",
+      doctors: TRIAL.doctorLimit,
+      currentPeriodEnd: tenant.planExpiresAt,
+    });
   } catch (err) {
     user.tenantId = null;
-    await Promise.allSettled([tenant && Tenant.deleteOne({ _id: tenant._id }), doctor && Doctor.deleteOne({ _id: doctor._id })]);
+    await Promise.allSettled([
+      tenant && Tenant.deleteOne({ _id: tenant._id }),
+      doctor && Doctor.deleteOne({ _id: doctor._id }),
+    ]);
     throw err;
   }
   res.status(201).json({ success: true, data: { tenant, doctor } });
@@ -292,12 +427,22 @@ const onboard = asyncHandler(async (req, res) => {
 // @desc    Public: confirm a clinic code before the patient signs up
 // @route   GET /api/auth/clinic/:slug
 const clinicLookup = asyncHandler(async (req, res) => {
-  const t = await Tenant.findOne({ slug: String(req.params.slug).toLowerCase(), status: "active" }).select("name branding.appName branding.logoUrl");
+  const t = await Tenant.findOne({
+    slug: String(req.params.slug).toLowerCase(),
+    status: "active",
+  }).select("name branding.appName branding.logoUrl");
   if (!t) {
     res.status(404);
     throw new Error("Clinic not found. Check the clinic code.");
   }
-  res.json({ success: true, data: { name: t.name, appName: t.branding.appName, logoUrl: t.branding.logoUrl } });
+  res.json({
+    success: true,
+    data: {
+      name: t.name,
+      appName: t.branding.appName,
+      logoUrl: t.branding.logoUrl,
+    },
+  });
 });
 
 // @desc    Patient self-signup into an existing clinic (creates login + own patient profile)
@@ -311,34 +456,70 @@ const registerPatient = asyncHandler(async (req, res) => {
   if (!clinicCode || !name || !req.body.email || !phone || !password) {
     fail(400, "Clinic code, name, email, phone and password are required");
   }
-  if (req.body.acceptTerms !== true) fail(400, "Please accept the Terms and Privacy Policy");
-  const email = validator.normalizeEmail(String(req.body.email)) || String(req.body.email).toLowerCase().trim();
-  if (!validator.isEmail(email)) fail(400, "Please provide a valid email address");
+  if (req.body.acceptTerms !== true)
+    fail(400, "Please accept the Terms and Privacy Policy");
+  const email =
+    validator.normalizeEmail(String(req.body.email)) ||
+    String(req.body.email).toLowerCase().trim();
+  if (!validator.isEmail(email))
+    fail(400, "Please provide a valid email address");
   const phone10 = String(phone).replace(/\D/g, "").slice(-10);
   if (phone10.length !== 10) fail(400, "Enter a valid 10-digit phone number");
   if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,128}$/.test(String(password))) {
-    fail(400, "Password must be at least 8 characters with uppercase, lowercase and a number");
+    fail(
+      400,
+      "Password must be at least 8 characters with uppercase, lowercase and a number",
+    );
   }
   const person = String(name).trim();
-  if (person.length < 2 || person.length > 80) fail(400, "Name must be between 2 and 80 characters");
-  if (!["male", "female", "other", "undisclosed"].includes(gender)) fail(400, "Gender is required");
-  if (!dob || Number.isNaN(new Date(dob).getTime()) || new Date(dob) > new Date()) fail(400, "A valid date of birth is required");
+  if (person.length < 2 || person.length > 80)
+    fail(400, "Name must be between 2 and 80 characters");
+  if (!["male", "female", "other", "undisclosed"].includes(gender))
+    fail(400, "Gender is required");
+  if (
+    !dob ||
+    Number.isNaN(new Date(dob).getTime()) ||
+    new Date(dob) > new Date()
+  )
+    fail(400, "A valid date of birth is required");
   const [firstName, ...rest] = person.split(/\s+/);
   if (!rest.length) fail(400, "Enter your first and last name");
 
-  const tenant = await Tenant.findOne({ slug: String(clinicCode).toLowerCase().trim(), status: "active" });
+  const tenant = await Tenant.findOne({
+    slug: String(clinicCode).toLowerCase().trim(),
+    status: "active",
+  });
   if (!tenant || (tenant.planExpiresAt && tenant.planExpiresAt < new Date())) {
     fail(404, "Clinic not found or not accepting new patients");
   }
-  if (await User.findOne({ email })) fail(400, "An account with that email already exists");
+  if (await User.findOne({ email }))
+    fail(400, "An account with that email already exists");
 
   req.tenantId = tenant._id;
-  await assertWithinLimit(req, res, "patientLimit", () => Patient.countDocuments({ tenantId: tenant._id }), "patients");
+  await assertWithinLimit(
+    req,
+    res,
+    "patientLimit",
+    () => Patient.countDocuments({ tenantId: tenant._id }),
+    "patients",
+  );
 
   const userId = new mongoose.Types.ObjectId();
-  const user = await User.create({ _id: userId, name: person, email, password, role: "patient", phone: phone10, tenantId: tenant._id });
+  const user = await User.create({
+    _id: userId,
+    name: person,
+    email,
+    password,
+    role: "patient",
+    phone: phone10,
+    tenantId: tenant._id,
+  });
   try {
-    const t = await Tenant.findByIdAndUpdate(tenant._id, { $inc: { "counters.patient": 1 } }, { new: true }).select("counters");
+    const t = await Tenant.findByIdAndUpdate(
+      tenant._id,
+      { $inc: { "counters.patient": 1 } },
+      { new: true },
+    ).select("counters");
     await Patient.create({
       tenantId: tenant._id,
       userId,
@@ -355,12 +536,18 @@ const registerPatient = asyncHandler(async (req, res) => {
     throw err;
   }
 
-  const token = signToken(user._id);
+  const token = signToken(user);
   setAuthCookies(res, token);
   res.status(201).json({
     success: true,
     data: {
-      user: { id: user._id, name: user.name, email: user.email, role: user.role, tenantId: tenant._id },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        tenantId: tenant._id,
+      },
       tenant: { _id: tenant._id, name: tenant.name, branding: tenant.branding },
       token,
     },
@@ -377,13 +564,38 @@ const login = asyncHandler(async (req, res) => {
     throw new Error("Email and password are required");
   }
 
-  const user = await User.findOne({ email }).select("+password");
-  if (!user || !(await user.matchPassword(password))) {
+  if (typeof email !== "string" || typeof password !== "string") {
+    res.status(400);
+    throw new Error("Email and password are required");
+  }
+
+  const user = await User.findOne({ email: email.toLowerCase().trim() }).select("+password");
+  if (user && user.lockUntil && user.lockUntil > new Date()) {
+    res.status(429);
+    throw new Error("Too many failed attempts. Try again in a few minutes.");
+  }
+  // Compare against a dummy hash for unknown e-mails so the response time doesn't reveal whether one exists.
+  const passwordOk = user
+    ? await user.matchPassword(password)
+    : (await bcrypt.compare(password, DUMMY_HASH), false);
+  if (!passwordOk) {
+    if (user) {
+      const locked = (user.failedLogins || 0) + 1 >= 10;
+      await User.updateOne(
+        { _id: user._id },
+        locked
+          ? { $set: { failedLogins: 0, lockUntil: new Date(Date.now() + 15 * 60 * 1000) } }
+          : { $inc: { failedLogins: 1 } },
+      );
+    }
     res.status(401);
     throw new Error("Invalid email or password");
   }
 
   assertActive(res, user);
+  if (user.failedLogins || user.lockUntil) {
+    await User.updateOne({ _id: user._id }, { $set: { failedLogins: 0 }, $unset: { lockUntil: 1 } });
+  }
 
   if (user.totpEnabled) {
     return res.json({
@@ -410,7 +622,21 @@ const verify2FA = asyncHandler(async (req, res) => {
     throw new Error("Session expired. Please sign in again.");
   }
   const user = await User.findById(decoded.id).select("+totpSecret");
+  if (user && user.lockUntil && user.lockUntil > new Date()) {
+    res.status(429);
+    throw new Error("Too many failed attempts. Try again in a few minutes.");
+  }
   if (!user || !user.totpEnabled || !totp.verifyToken(token, user.totpSecret)) {
+    // Wrong codes count towards the same lock as wrong passwords (a 6-digit code is guessable otherwise).
+    if (user) {
+      const locked = (user.failedLogins || 0) + 1 >= 10;
+      await User.updateOne(
+        { _id: user._id },
+        locked
+          ? { $set: { failedLogins: 0, lockUntil: new Date(Date.now() + 15 * 60 * 1000) } }
+          : { $inc: { failedLogins: 1 } },
+      );
+    }
     res.status(401);
     throw new Error("Invalid authenticator code");
   }
@@ -426,7 +652,10 @@ const getMe = asyncHandler(async (req, res) => {
   if (user.tenantId) {
     tenant = await Tenant.findById(user.tenantId);
   }
-  const pages = user.role === "super_admin" ? PAGE_KEYS : effectivePages(user.role, tenant && tenant.rolePermissions);
+  const pages =
+    user.role === "super_admin"
+      ? PAGE_KEYS
+      : effectivePages(user.role, tenant && tenant.rolePermissions);
   res.json({ success: true, data: { user, tenant, pages } });
 });
 
@@ -441,19 +670,29 @@ const refresh = asyncHandler(async (req, res) => {
 
   let decoded;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET, { clockTolerance: 60 * 60 });
+    decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      clockTolerance: 60 * 60,
+      algorithms: ["HS256"],
+    });
   } catch {
     res.status(401);
     throw new Error("Not authorized");
   }
 
   const user = await User.findById(decoded.id);
-  if (!user || user.status === "inactive") {
+  if (
+    !user ||
+    user.status === "inactive" ||
+    decoded.purpose ||
+    (decoded.tv || 0) !== (user.tokenVersion || 0) ||
+    // The sliding refresh has a ceiling: after SESSION_MAX_HOURS the person signs in again.
+    Date.now() - (Number(decoded.ssa) || 0) * 1000 > SESSION_MAX_MS
+  ) {
     res.status(401);
     throw new Error("Not authorized");
   }
 
-  const newToken = signToken(user._id);
+  const newToken = signToken(user, decoded.ssa);
   setAuthCookies(res, newToken);
 
   res.json({ success: true, data: { refreshed: true } });
@@ -475,7 +714,9 @@ const forgotPassword = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Please provide a valid email address");
   }
-  const user = await User.findOne({ email: String(email).toLowerCase().trim() });
+  const user = await User.findOne({
+    email: String(email).toLowerCase().trim(),
+  });
   if (user) {
     const raw = crypto.randomBytes(32).toString("hex");
     user.resetPasswordTokenHash = sha256(raw);
@@ -502,9 +743,9 @@ const forgotPassword = asyncHandler(async (req, res) => {
 // @route   POST /api/auth/reset-password/:token
 const resetPassword = asyncHandler(async (req, res) => {
   const { password } = req.body;
-  if (!password || password.length < 8) {
+  if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,128}$/.test(String(password || ""))) {
     res.status(400);
-    throw new Error("Password must be at least 8 characters");
+    throw new Error("Password must be at least 8 characters with uppercase, lowercase and a number");
   }
   const user = await User.findOne({
     resetPasswordTokenHash: sha256(req.params.token),
@@ -520,7 +761,11 @@ const resetPassword = asyncHandler(async (req, res) => {
   await user.save();
   res.clearCookie("access_token");
   res.clearCookie("csrf_token");
-  res.json({ success: true, data: {}, message: "Password reset. Please sign in." });
+  res.json({
+    success: true,
+    data: {},
+    message: "Password reset. Please sign in.",
+  });
 });
 
 // --- Passwordless login via WhatsApp OTP (phone must be verified) ---
@@ -547,7 +792,13 @@ const loginRequestOtp = asyncHandler(async (req, res) => {
     // One code for the number; whoever it reaches picks the account after verifying it.
     await User.updateMany(
       { _id: { $in: users.map((u) => u._id) } },
-      { $set: { loginOtpHash: sha256(otp), loginOtpExpires: new Date(Date.now() + TEN_MIN) } },
+      {
+        $set: {
+          loginOtpHash: otpHash(otp),
+          loginOtpExpires: new Date(Date.now() + TEN_MIN),
+          loginOtpTries: 0,
+        },
+      },
     );
     try {
       await sendWhatsAppOtp(waNumber(users[0].phone), otp);
@@ -564,26 +815,55 @@ const loginRequestOtp = asyncHandler(async (req, res) => {
 
 // Short-lived proof that the caller passed the OTP for these accounts; lets them choose among them.
 const selectSecret = () => `${process.env.JWT_SECRET}:select`;
-const signSelect = (ids) => jwt.sign({ ids: ids.map(String), purpose: "select" }, selectSecret(), { expiresIn: "5m" });
+const signSelect = (ids) =>
+  jwt.sign({ ids: ids.map(String), purpose: "select" }, selectSecret(), {
+    expiresIn: "5m",
+  });
 
 const maskEmail = (e) => {
   const [n = "", d = ""] = String(e || "").split("@");
-  return n ? `${n[0]}${"*".repeat(Math.max(1, Math.min(n.length - 1, 5)))}@${d}` : "";
+  return n
+    ? `${n[0]}${"*".repeat(Math.max(1, Math.min(n.length - 1, 5)))}@${d}`
+    : "";
 };
-const ageOf = (dob) => (dob ? Math.max(0, Math.floor((Date.now() - new Date(dob).getTime()) / 31_557_600_000)) : null);
+const ageOf = (dob) =>
+  dob
+    ? Math.max(
+        0,
+        Math.floor((Date.now() - new Date(dob).getTime()) / 31_557_600_000),
+      )
+    : null;
 
 // What the picker shows: enough to tell a father from a daughter, nothing clinical.
 async function buildChoices(users) {
   const tenants = new Map(
-    (await Tenant.find({ _id: { $in: users.map((u) => u.tenantId).filter(Boolean) } }).select("name branding.appName")).map((t) => [String(t._id), t]),
+    (
+      await Tenant.find({
+        _id: { $in: users.map((u) => u.tenantId).filter(Boolean) },
+      }).select("name branding.appName")
+    ).map((t) => [String(t._id), t]),
   );
   return Promise.all(
     users.map(async (u) => {
       const t = u.tenantId ? tenants.get(String(u.tenantId)) : null;
-      const base = { userId: u._id, name: u.name, role: u.role, email: maskEmail(u.email), clinic: t ? t.branding?.appName || t.name : "" };
+      const base = {
+        userId: u._id,
+        name: u.name,
+        role: u.role,
+        email: maskEmail(u.email),
+        clinic: t ? t.branding?.appName || t.name : "",
+      };
       if (u.role !== "patient") return base;
-      const p = await Patient.findOne({ userId: u._id, tenantId: u.tenantId }).sort({ createdAt: 1 }).select("patientId firstName lastName dateOfBirth gender");
-      return { ...base, name: p ? p.name : u.name, patientId: p?.patientId, age: p ? ageOf(p.dateOfBirth) : null, gender: p?.gender };
+      const p = await Patient.findOne({ userId: u._id, tenantId: u.tenantId })
+        .sort({ createdAt: 1 })
+        .select("patientId firstName lastName dateOfBirth gender");
+      return {
+        ...base,
+        name: p ? p.name : u.name,
+        patientId: p?.patientId,
+        age: p ? ageOf(p.dateOfBirth) : null,
+        gender: p?.gender,
+      };
     }),
   );
 }
@@ -596,12 +876,22 @@ const loginVerifyOtp = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Phone and OTP are required");
   }
-  const matched = await User.find({
+  const candidates = await User.find({
     phone: { $in: phoneVariants(phone) },
-    loginOtpHash: sha256(String(otp)),
     loginOtpExpires: { $gt: new Date() },
-  });
+    loginOtpHash: { $exists: true },
+  }).select("+loginOtpHash +loginOtpTries");
+  const given = otpHash(String(otp));
+  const matched = candidates.filter((u) => sameHash(u.loginOtpHash, given));
   if (!matched.length) {
+    // Count the miss against every account the code was issued to; the 5th miss burns the code.
+    if (candidates.length) {
+      await User.updateMany({ _id: { $in: candidates.map((u) => u._id) } }, { $inc: { loginOtpTries: 1 } });
+      const burnt = candidates.filter((u) => (u.loginOtpTries || 0) + 1 >= MAX_OTP_TRIES).map((u) => u._id);
+      if (burnt.length) {
+        await User.updateMany({ _id: { $in: burnt } }, { $unset: { loginOtpHash: 1, loginOtpExpires: 1 } });
+      }
+    }
     res.status(401);
     throw new Error("Invalid or expired OTP");
   }
@@ -610,7 +900,14 @@ const loginVerifyOtp = asyncHandler(async (req, res) => {
     { _id: { $in: matched.map((u) => u._id) } },
     { $unset: { loginOtpHash: 1, loginOtpExpires: 1 } },
   );
-  await User.updateMany({ _id: { $in: matched.filter((u) => u.role === "patient").map((u) => u._id) } }, { $set: { phoneVerified: true } });
+  await User.updateMany(
+    {
+      _id: {
+        $in: matched.filter((u) => u.role === "patient").map((u) => u._id),
+      },
+    },
+    { $set: { phoneVerified: true } },
+  );
 
   const active = matched.filter((u) => u.status !== "inactive");
   if (!active.length) {
@@ -621,7 +918,11 @@ const loginVerifyOtp = asyncHandler(async (req, res) => {
   if (active.length === 1) return sendSession(res, active[0]);
   res.json({
     success: true,
-    data: { requiresSelection: true, selectionToken: signSelect(active.map((u) => u._id)), choices: await buildChoices(active) },
+    data: {
+      requiresSelection: true,
+      selectionToken: signSelect(active.map((u) => u._id)),
+      choices: await buildChoices(active),
+    },
   });
 });
 
@@ -663,8 +964,9 @@ const sendPhoneOtp = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(req.user._id, {
     phone: String(phone).replace(/\D/g, "").slice(-10),
     phoneVerified: false,
-    phoneOtpHash: sha256(otp),
+    phoneOtpHash: otpHash(otp),
     phoneOtpExpires: new Date(Date.now() + TEN_MIN),
+    phoneOtpTries: 0,
   });
   try {
     await sendWhatsAppOtp(waNumber(phone), otp);
@@ -677,14 +979,24 @@ const sendPhoneOtp = asyncHandler(async (req, res) => {
 
 // @route   POST /api/auth/phone/verify-otp
 const verifyPhoneOtp = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).select("+phoneOtpHash +phoneOtpExpires");
+  const user = await User.findById(req.user._id).select(
+    "+phoneOtpHash +phoneOtpExpires +phoneOtpTries",
+  );
   const { otp } = req.body;
   if (
     !otp ||
     !user.phoneOtpHash ||
     user.phoneOtpExpires < new Date() ||
-    user.phoneOtpHash !== sha256(String(otp))
+    !sameHash(user.phoneOtpHash, otpHash(String(otp)))
   ) {
+    if (user.phoneOtpHash) {
+      user.phoneOtpTries = (user.phoneOtpTries || 0) + 1;
+      if (user.phoneOtpTries >= MAX_OTP_TRIES) {
+        user.phoneOtpHash = undefined;
+        user.phoneOtpExpires = undefined;
+      }
+      await user.save({ validateBeforeSave: false });
+    }
     res.status(400);
     throw new Error("Invalid or expired OTP");
   }
@@ -697,9 +1009,21 @@ const verifyPhoneOtp = asyncHandler(async (req, res) => {
 
 // @route   POST /api/auth/2fa/totp/setup
 const totpSetup = asyncHandler(async (req, res) => {
+  // Re-running setup used to overwrite the secret and switch 2FA off without any code — a stolen session could
+  // strip it. An enabled authenticator must be disabled (which needs a current code) before a new one is set up.
+  if (req.user.totpEnabled) {
+    res.status(409);
+    throw new Error("Authenticator is already enabled. Disable it first to set up a new one.");
+  }
   const secret = totp.generateSecret();
-  await User.findByIdAndUpdate(req.user._id, { totpSecret: secret, totpEnabled: false });
-  res.json({ success: true, data: { secret, ...(await totp.qrFor(req.user.email, secret)) } });
+  await User.findByIdAndUpdate(req.user._id, {
+    totpSecret: secret,
+    totpEnabled: false,
+  });
+  res.json({
+    success: true,
+    data: { secret, ...(await totp.qrFor(req.user.email, secret)) },
+  });
 });
 
 // @route   POST /api/auth/2fa/totp/verify
