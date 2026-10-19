@@ -57,12 +57,12 @@ const otpHash = (otp) => crypto.createHmac("sha256", process.env.JWT_SECRET).upd
   assert.ok(!(await via(sign({ id: "u1", tv: 1, purpose: "2fa" }))), "purpose token is not a session");
   assert.ok(!(await via(sign({ id: "u1", tv: 1 }, "other-secret"))), "foreign signature refused");
 
-  // 2. login: wrong password counts, the 10th locks, a locked account is refused even with the right password
-  dbUser = { _id: "u2", email: "a@b.co", failedLogins: 9, matchPassword: async () => false, status: "active" };
+  // 2. login: wrong password counts, the 4th locks, a locked account is refused even with the right password
+  dbUser = { _id: "u2", email: "a@b.co", failedLogins: 3, matchPassword: async () => false, status: "active" };
   calls.length = 0;
   let r = await run(c.login, { body: { email: "a@b.co", password: "x" } });
-  assert.strictEqual(r.res.code, 401);
-  assert.ok(calls.some((x) => x[0] === "updateOne" && x[2].$set && x[2].$set.lockUntil), "10th failure sets lockUntil");
+  assert.strictEqual(r.res.code, 429);
+  assert.ok(calls.some((x) => x[0] === "updateOne" && x[2].$set && x[2].$set.lockUntil), "4th failure sets lockUntil");
   dbUser = { _id: "u2", email: "a@b.co", lockUntil: new Date(Date.now() + 60000), matchPassword: async () => true, status: "active" };
   r = await run(c.login, { body: { email: "a@b.co", password: "right" } });
   assert.strictEqual(r.res.code, 429, "locked account refused");

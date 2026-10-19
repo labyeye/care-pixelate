@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ApiError, authAPI, type PhoneChoice } from "@/services/api";
 import logoShort from "@/assets/logos/logo-short.png";
 import logoLong from "@/assets/logos/logo-long.png";
+import loginDash from "@/assets/login-dash.png";
 
 const features = [
   { icon: Users, label: "Patient Records" },
@@ -183,6 +184,12 @@ export default function LoginPage() {
           </span>
         </div>
 
+        <img
+          src={loginDash}
+          alt="Dashboard preview"
+          className="relative z-10 max-w-3xl mx-auto"
+        />
+
         <div className="relative z-10">
           <h1 className="text-4xl xl:text-5xl font-display font-bold text-white leading-tight mb-5">
             Every patient.
@@ -266,7 +273,7 @@ export default function LoginPage() {
           )}
 
           {mode === "2fa" && (
-            <form onSubmit={handle2FA} className="space-y-5">
+            <form onSubmit={handle2FA} className="space-y-5 login-anim">
               <div>
                 <label className={labelCls}>Authenticator Code</label>
                 <input
@@ -294,7 +301,7 @@ export default function LoginPage() {
           )}
 
           {mode === "phone" && !otpSent && (
-            <form onSubmit={handleSendOtp} className="space-y-5">
+            <form onSubmit={handleSendOtp} className="space-y-5 login-anim">
               <div>
                 <label className={labelCls}>Phone Number</label>
                 <input
@@ -368,7 +375,7 @@ export default function LoginPage() {
           )}
 
           {mode === "phone" && otpSent && (
-            <form onSubmit={handleVerifyOtp} className="space-y-5">
+            <form onSubmit={handleVerifyOtp} className="space-y-5 login-anim">
               <div>
                 <label className={labelCls}>WhatsApp OTP</label>
                 <input
@@ -396,7 +403,7 @@ export default function LoginPage() {
 
           {mode === "email" && (
             <>
-              <form onSubmit={handleLogin} className="space-y-5">
+              <form onSubmit={handleLogin} className="space-y-5 login-anim">
                 <div>
                   <label className={labelCls}>Email</label>
                   <input
@@ -500,8 +507,34 @@ export default function LoginPage() {
               </div>
             </>
           )}
+          <LegalFooter />
         </div>
       </div>
     </div>
+  );
+}
+
+function LegalFooter() {
+  return (
+    <p className="text-xs text-gray-500 mt-4 text-center">
+      © 2026 Pixelate Nest. All rights reserved.{" "}
+      <a
+        href="https://www.pixelatenest.com/legal/privacy-policy.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-bold text-[#024BAB] hover:underline"
+      >
+        Privacy Policy
+      </a>
+      {" · "}
+      <a
+        href="https://www.pixelatenest.com/legal/terms-of-service.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-bold text-[#024BAB] hover:underline"
+      >
+        Terms of Service
+      </a>
+    </p>
   );
 }

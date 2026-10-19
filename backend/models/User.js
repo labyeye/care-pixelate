@@ -68,7 +68,7 @@ const userSchema = new mongoose.Schema(
     phoneOtpTries: { type: Number, default: 0, select: false },
     // Bumped on every password change (pre-save hook); older JWTs carry the old value and are refused by `protect`.
     tokenVersion: { type: Number, default: 0 },
-    // Brute-force guard: 10 wrong passwords lock the account for 15 minutes.
+    // Brute-force guard: the 4th wrong password locks the account for 30 minutes (WhatsApp OTP unlocks).
     failedLogins: { type: Number, default: 0 },
     lockUntil: { type: Date },
   },

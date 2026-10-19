@@ -489,3 +489,59 @@ tbody tr:hover {
     transform: none;
   }
 }
+
+/* Login: staggered slide-up for form fields + button motion */
+@keyframes login-slide-in {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.login-anim > * {
+  animation: login-slide-in 1s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.login-anim > *:nth-child(1) { animation-delay: 0.1s; }
+.login-anim > *:nth-child(2) { animation-delay: 0.3s; }
+.login-anim > *:nth-child(3) { animation-delay: 0.5s; }
+.login-anim > *:nth-child(4) { animation-delay: 0.7s; }
+.login-anim > *:nth-child(5) { animation-delay: 0.9s; }
+.login-anim button[type="submit"]:not(:disabled):active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+.login-anim button[type="submit"]:not(:disabled):hover svg {
+  transform: translateX(4px);
+}
+.login-anim button[type="submit"] svg {
+  transition: transform 0.2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-anim > * { animation: none; }
+}
+
+/* ------------------------------------------------------------------
+   Motion - every card on every page
+   Any bordered card inside <main> rises in (staggered by sibling index, see --i
+   above) and the icon chip inside it pops in just after, then tilts on card hover.
+   Modals, popovers, sticky/fixed/absolute boxes and tiny boxes are skipped.
+   Add `no-nb` to opt a card out.
+------------------------------------------------------------------- */
+main :is(div, section, article, li, a, form):is(.border-2, .nb-card):not(
+    .nb-modal, .fixed, .absolute, .sticky, .no-nb, .animate-spin, .w-2, .w-3, .w-4, .w-5, .w-6, .w-7, .w-8, .w-9, .w-10, .w-11, .w-12, .w-14, .w-16
+  ) {
+  animation: nb-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+main :is(div, span):is(.w-7, .w-8, .w-9, .w-10, .w-11, .w-12, .w-14, .w-16):is(.border-2, .border):has(> svg):not(.no-nb) {
+  animation: nb-pop 0.55s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(180ms + var(--i, 0) * 60ms);
+  transition: transform 200ms ease;
+}
+main :is(.border-2, .nb-card):hover :is(div, span):is(.w-7, .w-8, .w-9, .w-10, .w-11, .w-12, .w-14, .w-16):is(.border-2, .border):has(> svg) {
+  transform: scale(1.1) rotate(-4deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  main :is(div, section, article, li, a, form):is(.border-2, .nb-card),
+  main :is(div, span):is(.w-7, .w-8, .w-9, .w-10, .w-11, .w-12, .w-14, .w-16):has(> svg) {
+    animation: none !important;
+    transition: none !important;
+  }
+}

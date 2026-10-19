@@ -40,6 +40,11 @@ const sameHash = (a, b) => {
   return x.length === y.length && crypto.timingSafeEqual(x, y);
 };
 const MAX_OTP_TRIES = 5;
+// 3 wrong passwords (or 2FA codes) are allowed; the 4th wrong one locks the account for 30 min.
+// A WhatsApp OTP login (loginVerifyOtp) lifts the lock.
+const MAX_LOGIN_FAILS = 4;
+const LOGIN_LOCK_MS = 30 * 60 * 1000;
+const LOCKED_MSG = "Account locked for 30 minutes after too many wrong passwords. Unlock it now with a WhatsApp OTP.";
 
 const setAuthCookies = (res, token) => {
   const csrfToken = crypto.randomBytes(24).toString("hex");
@@ -572,7 +577,7 @@ const login = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: email.toLowerCase().trim() }).select("+password");
   if (user && user.lockUntil && user.lockUntil > new Date()) {
     res.status(429);
-    throw new Error("Too many failed attempts. Try again in a few minutes.");
+    throw new Error(LOCKED_MSG);
   }
   // Compare against a dummy hash for unknown e-mails so the response time doesn't reveal whether one exists.
   const passwordOk = user
@@ -580,13 +585,17 @@ const login = asyncHandler(async (req, res) => {
     : (await bcrypt.compare(password, DUMMY_HASH), false);
   if (!passwordOk) {
     if (user) {
-      const locked = (user.failedLogins || 0) + 1 >= 10;
+      const locked = (user.failedLogins || 0) + 1 >= MAX_LOGIN_FAILS;
       await User.updateOne(
         { _id: user._id },
         locked
-          ? { $set: { failedLogins: 0, lockUntil: new Date(Date.now() + 15 * 60 * 1000) } }
+          ? { $set: { failedLogins: 0, lockUntil: new Date(Date.now() + LOGIN_LOCK_MS) } }
           : { $inc: { failedLogins: 1 } },
       );
+      if (locked) {
+        res.status(429);
+        throw new Error(LOCKED_MSG);
+      }
     }
     res.status(401);
     throw new Error("Invalid email or password");
@@ -624,18 +633,22 @@ const verify2FA = asyncHandler(async (req, res) => {
   const user = await User.findById(decoded.id).select("+totpSecret");
   if (user && user.lockUntil && user.lockUntil > new Date()) {
     res.status(429);
-    throw new Error("Too many failed attempts. Try again in a few minutes.");
+    throw new Error(LOCKED_MSG);
   }
   if (!user || !user.totpEnabled || !totp.verifyToken(token, user.totpSecret)) {
     // Wrong codes count towards the same lock as wrong passwords (a 6-digit code is guessable otherwise).
     if (user) {
-      const locked = (user.failedLogins || 0) + 1 >= 10;
+      const locked = (user.failedLogins || 0) + 1 >= MAX_LOGIN_FAILS;
       await User.updateOne(
         { _id: user._id },
         locked
-          ? { $set: { failedLogins: 0, lockUntil: new Date(Date.now() + 15 * 60 * 1000) } }
+          ? { $set: { failedLogins: 0, lockUntil: new Date(Date.now() + LOGIN_LOCK_MS) } }
           : { $inc: { failedLogins: 1 } },
       );
+      if (locked) {
+        res.status(429);
+        throw new Error(LOCKED_MSG);
+      }
     }
     res.status(401);
     throw new Error("Invalid authenticator code");
@@ -898,7 +911,7 @@ const loginVerifyOtp = asyncHandler(async (req, res) => {
   // The code is single-use for every account it was issued to; patients just proved they hold the phone.
   await User.updateMany(
     { _id: { $in: matched.map((u) => u._id) } },
-    { $unset: { loginOtpHash: 1, loginOtpExpires: 1 } },
+    { $set: { failedLogins: 0 }, $unset: { loginOtpHash: 1, loginOtpExpires: 1, lockUntil: 1 } },
   );
   await User.updateMany(
     {
