@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { ApiError, authAPI } from "@/services/api";
-import logoLong from "@/assets/logos/logo-long.png";
+import { AuthShell } from "@/components/auth/AuthShell";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -29,13 +29,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <img
-          src={logoLong}
-          alt="NestCare"
-          className="h-12 object-contain mb-8"
-        />
+    <AuthShell>
         <h2 className="text-2xl font-display font-bold text-black mb-1">
           Forgot password?
         </h2>
@@ -47,14 +41,14 @@ export default function ForgotPasswordPage() {
         ) : (
           <>
             <p className="text-sm text-gray-500 font-medium mb-8">
-              Enter your email and we'll send you a reset link.
+              Enter Email address and we'll send you a reset link.
             </p>
             {error && (
               <div className="bg-red-50 border-2 border-red-400 text-red-600 text-sm px-3 py-2.5 mb-5 font-medium">
                 {error}
               </div>
             )}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5 login-anim">
               <div>
                 <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1.5">
                   Email
@@ -64,7 +58,7 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@hospital.com"
-                  className="w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none focus:border-[#024BAB] transition-colors"
+                  className="w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none transition-colors"
                   required
                   autoFocus
                 />
@@ -91,7 +85,6 @@ export default function ForgotPasswordPage() {
         >
           ← Back to login
         </Link>
-      </div>
-    </div>
+    </AuthShell>
   );
 }

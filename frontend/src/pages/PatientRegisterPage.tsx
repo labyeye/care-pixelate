@@ -1,3 +1,4 @@
+import { AuthShell } from "@/components/auth/AuthShell";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
@@ -13,7 +14,6 @@ import {
 } from "@/components/ui/phone-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError, authAPI } from "@/services/api";
-import logoLong from "@/assets/logos/logo-long.png";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -110,20 +110,14 @@ export default function PatientRegisterPage() {
     wide = false,
   ) => (
     <div className={`space-y-1.5 ${wide ? "sm:col-span-2" : ""}`}>
-      <Label>{label}</Label>
+      <Label className="block text-xs font-bold text-black uppercase tracking-wider mb-1.5">{label}</Label>
       {input}
       {err(k) && <p className="text-xs font-bold text-red-600">{err(k)}</p>}
     </div>
   );
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F0F6FF] p-6">
-      <div className="w-full max-w-xl animate-fade-in">
-        <img
-          src={logoLong}
-          alt="NestCare"
-          className="mb-8 h-12 object-contain"
-        />
+    <AuthShell wide>
         <h2 className="mb-1 font-display text-3xl font-bold text-black">
           Patient sign up
         </h2>
@@ -138,9 +132,9 @@ export default function PatientRegisterPage() {
         </p>
 
         <div className="mb-6 space-y-1.5">
-          <Label htmlFor="clinic">Clinic code</Label>
+          <Label htmlFor="clinic" className="block text-xs font-bold text-black uppercase tracking-wider mb-1.5">Clinic code</Label>
           <div className="flex gap-2">
-            <Input
+            <Input className="w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none transition-colors"
               id="clinic"
               value={clinicCode}
               onChange={(e) => {
@@ -169,13 +163,13 @@ export default function PatientRegisterPage() {
         <form
           onSubmit={submit}
           noValidate
-          className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${clinic ? "" : "pointer-events-none opacity-40"}`}
+          className={`grid grid-cols-1 gap-5 sm:grid-cols-2 login-anim ${clinic ? "" : "pointer-events-none opacity-40"}`}
           aria-disabled={!clinic}
         >
           {field(
             "name",
             "Full name",
-            <Input
+            <Input className="w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none transition-colors"
               value={f.name}
               onChange={(e) => set("name", e.target.value)}
               placeholder="Asha Verma"
@@ -186,7 +180,7 @@ export default function PatientRegisterPage() {
           {field(
             "email",
             "Email",
-            <Input
+            <Input className="w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none transition-colors"
               type="email"
               value={f.email}
               onChange={(e) => set("email", e.target.value)}
@@ -207,7 +201,7 @@ export default function PatientRegisterPage() {
           {field(
             "dob",
             "Date of birth",
-            <Input
+            <Input className="w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none transition-colors"
               type="date"
               max={new Date().toISOString().slice(0, 10)}
               value={f.dob}
@@ -232,7 +226,7 @@ export default function PatientRegisterPage() {
           {field(
             "password",
             "Password",
-            <Input
+            <Input className="w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none transition-colors"
               type="password"
               value={f.password}
               onChange={(e) => set("password", e.target.value)}
@@ -243,7 +237,7 @@ export default function PatientRegisterPage() {
           {field(
             "confirm",
             "Confirm password",
-            <Input
+            <Input className="w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none transition-colors"
               type="password"
               value={f.confirm}
               onChange={(e) => set("confirm", e.target.value)}
@@ -279,7 +273,6 @@ export default function PatientRegisterPage() {
             {saving ? "Creating account…" : "Create my account →"}
           </Button>
         </form>
-      </div>
-    </div>
+    </AuthShell>
   );
 }

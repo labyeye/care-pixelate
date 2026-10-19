@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { ApiError, authAPI } from "@/services/api";
-import logoLong from "@/assets/logos/logo-long.png";
+import { AuthShell } from "@/components/auth/AuthShell";
 
 export default function ResetPasswordPage() {
   const { token = "" } = useParams();
@@ -47,7 +47,7 @@ export default function ResetPasswordPage() {
           set(e.target.value);
           setError("");
         }}
-        className="w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none focus:border-[#024BAB] transition-colors"
+        className="w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none transition-colors"
         required
         autoComplete="new-password"
       />
@@ -55,13 +55,7 @@ export default function ResetPasswordPage() {
   );
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <img
-          src={logoLong}
-          alt="NestCare"
-          className="h-12 object-contain mb-8"
-        />
+    <AuthShell>
         <h2 className="text-2xl font-display font-bold text-black mb-1">
           Set a new password
         </h2>
@@ -73,7 +67,7 @@ export default function ResetPasswordPage() {
             {error}
           </div>
         )}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5 login-anim">
           {field("New password", password, setPassword)}
           {field("Confirm password", confirm, setConfirm)}
           <button
@@ -96,7 +90,6 @@ export default function ResetPasswordPage() {
         >
           ← Back to login
         </Link>
-      </div>
-    </div>
+    </AuthShell>
   );
 }

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/phone-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/services/api";
-import logoLong from "@/assets/logos/logo-long.png";
+import { AuthShell } from "@/components/auth/AuthShell";
 
 type Form = {
   name: string;
@@ -82,7 +82,7 @@ export default function RegisterTenantPage() {
     wide = false,
   ) => (
     <div className={`space-y-1.5 ${wide ? "sm:col-span-2" : ""}`}>
-      <Label htmlFor={k}>{label}</Label>
+      <Label htmlFor={k} className="block text-xs font-bold text-black uppercase tracking-wider mb-1.5">{label}</Label>
       {input}
       {err(k) && <p className="text-xs font-bold text-red-600">{err(k)}</p>}
     </div>
@@ -102,7 +102,7 @@ export default function RegisterTenantPage() {
         onChange={(e) => set(k, e.target.value as never)}
         onBlur={touch(k)}
         aria-invalid={!!err(k)}
-        className={err(k) ? "border-red-500" : undefined}
+        className={`w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none transition-colors ${err(k) ? "border-red-500" : ""}`}
         {...props}
       />,
     );
@@ -134,13 +134,7 @@ export default function RegisterTenantPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F0F6FF] p-6">
-      <div className="w-full max-w-xl animate-fade-in">
-        <img
-          src={logoLong}
-          alt="NestCare"
-          className="mb-8 h-12 object-contain"
-        />
+    <AuthShell wide>
 
         <h2 className="mb-1 font-display text-3xl font-bold text-black">
           Create account
@@ -158,7 +152,7 @@ export default function RegisterTenantPage() {
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2"
+          className="grid grid-cols-1 gap-5 sm:grid-cols-2 login-anim"
         >
           {text("name", "Full name", {
             placeholder: "Dr. Jane Doe",
@@ -227,7 +221,6 @@ export default function RegisterTenantPage() {
             {isSubmitting ? "Creating account..." : "Create Account →"}
           </Button>
         </form>
-      </div>
-    </div>
+    </AuthShell>
   );
 }

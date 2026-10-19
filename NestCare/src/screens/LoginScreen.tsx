@@ -28,7 +28,7 @@ export default function LoginScreen({ navigation }: any) {
 
   const handleSubmit = async () => {
     if (!email.trim() || !password.trim()) {
-      setError('Please enter your email and password.');
+      setError('Please Enter Email address and password.');
       return;
     }
     setError('');

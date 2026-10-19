@@ -69,7 +69,7 @@ export default function ForgotPasswordScreen({ navigation }: any) {
               Reset your password
             </Text>
             <Text style={[styles.subheading, { color: colors.mutedText }]}>
-              Enter your email and we'll send you a reset link.
+              Enter Email address and we'll send you a reset link.
             </Text>
 
             <View style={styles.fieldGroup}>

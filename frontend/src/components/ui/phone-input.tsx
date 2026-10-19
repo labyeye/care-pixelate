@@ -97,7 +97,7 @@ export function PhoneInput({
     <div ref={rootRef} className="relative">
       <div
         className={cn(
-          "flex h-10 items-stretch border-2 border-black bg-white focus-within:border-[#024BAB]",
+          "flex h-10 items-stretch border-2 border-black bg-white",
           invalid && "border-red-500",
         )}
       >

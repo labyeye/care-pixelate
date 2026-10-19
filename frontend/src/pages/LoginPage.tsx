@@ -31,9 +31,9 @@ type Mode = "email" | "phone" | "2fa" | "select";
 const labelCls =
   "block text-xs font-bold text-black uppercase tracking-wider mb-1.5";
 const inputCls =
-  "w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none focus:border-[#024BAB] transition-colors";
+  "w-full px-4 py-3 border-2 border-black text-sm font-medium bg-white focus:outline-none transition-colors";
 const codeCls =
-  "w-full px-4 py-3 border-2 border-black text-lg font-bold tracking-[0.5em] text-center bg-white focus:outline-none focus:border-[#024BAB] transition-colors";
+  "w-full px-4 py-3 border-2 border-black text-lg font-bold tracking-[0.5em] text-center bg-white focus:outline-none transition-colors";
 
 export default function LoginPage() {
   const { login, refreshSession } = useAuth();
@@ -191,11 +191,11 @@ export default function LoginPage() {
         />
 
         <div className="relative z-10">
-          <h1 className="text-4xl xl:text-5xl font-display font-bold text-white leading-tight mb-5">
+          <h1 className="text-3xl xl:text-4xl font-display font-bold text-white leading-tight mb-5">
             Every patient.
-            <br />
+            
             Every appointment.
-            <br />
+            
             One place.
           </h1>
           <p className="text-white/70 text-base font-medium max-w-sm">
@@ -433,7 +433,7 @@ export default function LoginPage() {
                       Forgot password?
                     </Link>
                   </div>
-                  <div className="flex border-2 border-black focus-within:border-[#024BAB] transition-colors">
+                  <div className="flex border-2 border-black transition-colors">
                     <input
                       type={showPw ? "text" : "password"}
                       value={password}
