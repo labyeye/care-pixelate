@@ -1,4 +1,6 @@
 import React, { useEffect, useRef } from 'react';
+import { API_BASE as TRACK_BASE } from '../services/api';
+import { initUsageTracker, setUsageIdentity, trackNavState } from '../utils/usageTracker';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -40,6 +42,8 @@ import PaymentsScreen from '../screens/PaymentsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import StaffNavigator, { TabBar } from '../staff/StaffNavigator';
 import SettingsScreen from '../screens/SettingsScreen';
+
+initUsageTracker(TRACK_BASE);
 
 const RootStack = createNativeStackNavigator();
 const HomeStackNav = createNativeStackNavigator();
@@ -202,7 +206,8 @@ function MainEntry() {
 }
 
 export default function AppNavigator() {
-  const { isLoading, isAuthenticated } = useAuth();
+  const { isLoading, isAuthenticated, user } = useAuth();
+  setUsageIdentity(user);
 
   // Sign in / register / OTP / logout only change the auth state; this moves the stack to match.
   // (Splash handles the very first screen, so the initial value is not treated as a change.)
@@ -222,7 +227,7 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} onStateChange={trackNavState}>
       <RootStack.Navigator
         screenOptions={{ headerShown: false }}
         initialRouteName="Splash"

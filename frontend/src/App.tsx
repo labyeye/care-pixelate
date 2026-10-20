@@ -1,4 +1,5 @@
 const PaymentReturnPage = lazy(() => import("./pages/PaymentReturnPage"));
+import { useUsageTracker } from "@/hooks/useUsageTracker";
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -135,6 +136,7 @@ function OnboardingRoute() {
 }
 
 function AppRoutes() {
+  useUsageTracker();
   return (
     <Suspense fallback={<LoadingScreen />}>
       <Routes>

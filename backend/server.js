@@ -89,6 +89,13 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
+// Usage/health metrics + account control for the CRM dashboard.
+const tele = require("./utils/telemetry")("NESTCARE_SECRET");
+app.use(tele.middleware);
+app.use("/api/telemetry", tele.ingest);
+app.use("/api/crm/metrics", tele.metrics);
+app.use("/api/crm/accounts", require("./utils/crmAccounts")("NESTCARE_SECRET", require("./utils/crmAdapter")));
+
 app.use("/api/auth", authLimiter, require("./routes/authRoutes"));
 app.use("/api/tenants", audit("tenant"), require("./routes/tenantRoutes"));
 app.use("/api/billing", require("./routes/billingRoutes"));

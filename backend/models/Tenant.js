@@ -150,6 +150,9 @@ const tenantSchema = new mongoose.Schema(
       signatoryTitle: { type: String, default: "" },
       showBank: { type: Boolean, default: true },
     },
+    // Set from the CRM dashboard for custom deals; shown on the customer's billing page instead of the defaults.
+    customPlanName: { type: String, trim: true },
+    customFeatures: { type: [String], default: undefined },
   },
   { timestamps: true },
 );
