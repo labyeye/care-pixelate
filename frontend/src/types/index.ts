@@ -220,6 +220,7 @@ export interface Appointment {
   fee?: number;
   paymentStatus?: "unpaid" | "paid" | "waived";
   checkedInAt?: string;
+  startedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }

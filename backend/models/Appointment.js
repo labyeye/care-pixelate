@@ -50,6 +50,7 @@ const appointmentSchema = new mongoose.Schema(
     },
     reminderSentAt: { type: Date },
     checkedInAt: { type: Date },
+    startedAt: { type: Date }, // doctor opened the visit (Queue: "ongoing")
     completedAt: { type: Date },
     cancelReason: { type: String, trim: true },
     status: {

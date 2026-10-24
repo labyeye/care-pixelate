@@ -24,6 +24,7 @@ import {
   Wallet,
   ClipboardPlus,
   Repeat,
+  ListOrdered,
 } from "lucide-react";
 import type { UserRole } from "@/types";
 
@@ -61,6 +62,7 @@ const TENANT_ADMIN_NAV: NavGroup[] = [
     items: [
       { label: "Patients", href: "/patients", icon: Users },
       { label: "Doctors", href: "/doctors", icon: Stethoscope },
+      { label: "Queue", href: "/queue", icon: ListOrdered },
       { label: "Appointments", href: "/appointments", icon: CalendarDays },
       { label: "Calendar", href: "/calendar", icon: CalendarRange },
       { label: "Consultations", href: "/consultations", icon: ClipboardPlus },
@@ -106,6 +108,7 @@ const DOCTOR_NAV: NavGroup[] = [
   {
     label: "My Work",
     items: [
+      { label: "Queue", href: "/queue", icon: ListOrdered },
       { label: "Appointments", href: "/appointments", icon: CalendarDays },
       { label: "Calendar", href: "/calendar", icon: CalendarRange },
       { label: "Consultations", href: "/consultations", icon: ClipboardPlus },
@@ -162,6 +165,7 @@ const HREF_PAGE: Record<string, string> = {
   "/dashboard": "dashboard",
   "/patients": "patients",
   "/doctors": "doctors",
+  "/queue": "appointments",
   "/appointments": "appointments",
   "/calendar": "calendar",
   "/follow-ups": "appointments",

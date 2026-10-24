@@ -80,12 +80,13 @@ export default function AppointmentsPage() {
   const [params, setParams] = useSearchParams();
   useEffect(() => {
     const patientId = params.get("patientId");
-    if (!patientId) return;
-    setForm((f) => ({
-      ...f,
-      patientId,
-      doctorId: params.get("doctorId") || f.doctorId,
-    }));
+    if (!patientId && !params.get("new")) return;
+    if (patientId)
+      setForm((f) => ({
+        ...f,
+        patientId,
+        doctorId: params.get("doctorId") || f.doctorId,
+      }));
     setOpen(true);
     setParams({}, { replace: true });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

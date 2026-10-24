@@ -192,6 +192,17 @@ const create = asyncHandler(async (req, res) => {
       fail(res, 409, "A consultation already exists for this appointment"); // lost a race with a second request
     throw e;
   }
+  await Appointment.updateOne(
+    { _id: appt._id, tenantId: req.tenantId, status: "scheduled" },
+    [
+      {
+        $set: {
+          startedAt: { $ifNull: ["$startedAt", "$$NOW"] },
+          checkedInAt: { $ifNull: ["$checkedInAt", "$$NOW"] },
+        },
+      },
+    ],
+  );
   res.status(201).json({
     success: true,
     data: c,

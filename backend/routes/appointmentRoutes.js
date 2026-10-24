@@ -6,6 +6,7 @@ const {
   update,
   remove,
   checkIn,
+  start,
   videoLink,
 } = require("../controllers/appointmentController");
 const {
@@ -38,6 +39,12 @@ router
   .post(authorize(...FRONT_DESK), create);
 router.get("/:id/video-link", authorize(...STAFF), videoLink);
 router.post("/:id/check-in", authorize(...FRONT_DESK), checkIn);
+// Only clinicians open a visit (same list as consultationRoutes).
+router.post(
+  "/:id/start",
+  authorize("super_admin", "tenant_owner", "hospital_admin", "doctor"),
+  start,
+);
 // Intake vitals: receptionist / nurse / doctor / admins (FRONT_DESK) record, anyone who sees the appointment may read.
 router
   .route("/:id/vitals")

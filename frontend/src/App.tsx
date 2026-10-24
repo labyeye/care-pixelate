@@ -17,6 +17,7 @@ const CalendarPage = lazy(() => import("@/pages/CalendarPage"));
 const ConsultationPage = lazy(() => import("@/pages/ConsultationPage"));
 const ConsultationsPage = lazy(() => import("@/pages/ConsultationsPage"));
 const FollowUpsPage = lazy(() => import("@/pages/FollowUpsPage"));
+const QueuePage = lazy(() => import("@/pages/QueuePage"));
 const InvoicesPage = lazy(() => import("@/pages/InvoicesPage"));
 const LabOrdersPage = lazy(() => import("@/pages/LabOrdersPage"));
 const MedicinesPage = lazy(() => import("@/pages/MedicinesPage"));
@@ -252,6 +253,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DoctorsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/queue"
+        element={
+          <ProtectedRoute>
+            <QueuePage />
           </ProtectedRoute>
         }
       />

@@ -296,6 +296,30 @@ const checkIn = asyncHandler(async (req, res) => {
   res.json({ success: true, data: appointment });
 });
 
+// POST /:id/start: the doctor opens the visit from the Queue. Starts the ongoing timer; an un-checked-in
+// patient is checked in at the same moment. Re-starting keeps the original time (Resume).
+const start = asyncHandler(async (req, res) => {
+  const appointment = await Appointment.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      tenantId: req.tenantId,
+      status: "scheduled",
+      ...own(req),
+    },
+    [
+      {
+        $set: {
+          startedAt: { $ifNull: ["$startedAt", "$$NOW"] },
+          checkedInAt: { $ifNull: ["$checkedInAt", "$$NOW"] },
+        },
+      },
+    ],
+    { new: true },
+  );
+  if (!appointment) fail(res, 404, "Scheduled appointment not found");
+  res.json({ success: true, data: appointment });
+});
+
 // GET /:id/video-link: same time window for staff and patients.
 const videoLink = asyncHandler(async (req, res) => {
   const appt = await Appointment.findOne({
@@ -327,6 +351,7 @@ module.exports = {
   update,
   remove,
   checkIn,
+  start,
   freeSlots,
   prepare,
   videoLink,

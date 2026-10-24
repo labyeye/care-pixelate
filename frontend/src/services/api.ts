@@ -514,6 +514,9 @@ export const appointmentsAPI = {
   ...makeCrudApi<Appointment>("appointments"),
   checkIn: (id: string) =>
     request<Appointment>(`/appointments/${id}/check-in`, { method: "POST" }),
+  /** Doctor opens the visit from the Queue (starts the ongoing timer; checks the patient in if needed). */
+  start: (id: string) =>
+    request<Appointment>(`/appointments/${id}/start`, { method: "POST" }),
   /** Intake vitals recorded for a visit (nurse / receptionist), shown pre-filled to the doctor. */
   getVitals: (id: string) => request<Triage>(`/appointments/${id}/vitals`),
   saveVitals: (
