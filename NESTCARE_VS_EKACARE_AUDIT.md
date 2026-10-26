@@ -1,13 +1,13 @@
-# Nest Care vs Eka Care — Audit & Phase Plan
+# Nest Doc vs Eka Care — Audit & Phase Plan
 
 Date: 2026-10-15
 Scope: `NestCare/backend`, `NestCare/frontend` (web), `NestCare/NestCare` (React Native app). Reference flows: `leads-pixelate`, `sports-pixelate`, `hrms`.
 
-> **Note:** Nest Care side = code padh ke verified. Eka Care side = public product knowledge se (live site check nahi hua) — implement karne se pehle unki current feature/pricing page ek baar dekh lena.
+> **Note:** Nest Doc side = code padh ke verified. Eka Care side = public product knowledge se (live site check nahi hua) — implement karne se pehle unki current feature/pricing page ek baar dekh lena.
 
 ---
 
-## 1. Nest Care ki current state (verified)
+## 1. Nest Doc ki current state (verified)
 
 **Backend (Node/Express/Mongo, multi-tenant)** — sirf 5 resources:
 
@@ -34,7 +34,7 @@ Legend: ✅ hai | 🟡 UI hai, backend nahi | ❌ nahi hai
 
 ### A. Patient side (Eka Care consumer app)
 
-| Feature                                                          | Eka Care | Nest Care                       |
+| Feature                                                          | Eka Care | Nest Doc                       |
 | ---------------------------------------------------------------- | -------- | ------------------------------- |
 | Signup via phone OTP (patient)                                   | ✅       | ❌ (sirf tenant-owner register) |
 | ABHA (ABDM health ID) create/link                                | ✅       | ❌                              |
@@ -52,7 +52,7 @@ Legend: ✅ hai | 🟡 UI hai, backend nahi | ❌ nahi hai
 
 ### B. Doctor / clinic side (Eka Care EMR)
 
-| Feature                                                         | Eka Care       | Nest Care                                                     |
+| Feature                                                         | Eka Care       | Nest Doc                                                     |
 | --------------------------------------------------------------- | -------------- | ------------------------------------------------------------- |
 | Patient registry + search + UHID                                | ✅             | ✅ basic (no UHID, no search/pagination)                      |
 | Appointment calendar, slots, walk-in queue/token                | ✅             | 🟡 plain list, koi slot logic nahi, double-booking check nahi |
@@ -73,7 +73,7 @@ Legend: ✅ hai | 🟡 UI hai, backend nahi | ❌ nahi hai
 
 ### C. Platform / SaaS
 
-| Feature                                | Leads/Sports/HRMS | Nest Care                                                   |
+| Feature                                | Leads/Sports/HRMS | Nest Doc                                                   |
 | -------------------------------------- | ----------------- | ----------------------------------------------------------- |
 | Subscription model + Razorpay checkout | ✅                | ❌ (plan field + expiry check, **pay karne ka rasta nahi**) |
 | Plan limits enforcement                | ✅                | 🟡 `limits` field hai, kahin check nahi                     |
@@ -148,9 +148,9 @@ Leads reference: `name, email, password, companyName, phone, department` + confi
 1. `POST /auth/register` → validate → User(role super_admin) → Tenant(plan `trial`) → session cookie + token → redirect `/onboarding`.
 2. Onboarding / "Create Account & Choose Plan" → `GET /billing/plans` → Razorpay order → verify signature → `Subscription` active + invoice (`INV-LEADS-0001`) + welcome email.
 3. Phone verify (WhatsApp OTP) → optional TOTP in Settings.
-4. Trial/plan expiry gate in `protect` (Nest Care mein ye already hai).
+4. Trial/plan expiry gate in `protect` (Nest Doc mein ye already hai).
 
-**Nest Care target flow:**
+**Nest Doc target flow:**
 
 ```
 Register (org + owner + phone + doctors count)
@@ -164,7 +164,7 @@ Register (org + owner + phone + doctors count)
 ```
 
 Backend delta (files to add, leads se copy-adapt):
-`models/Subscription.js`, `models/OfferCode.js`, `routes/billingRoutes.js`, `utils/invoiceTemplate.js`, `utils/emailService.js` (welcome + invoice), plus `/auth/reset-password/otp/*` (leads wala WhatsApp/TOTP reset — Nest Care mein sirf email reset hai).
+`models/Subscription.js`, `models/OfferCode.js`, `routes/billingRoutes.js`, `utils/invoiceTemplate.js`, `utils/emailService.js` (welcome + invoice), plus `/auth/reset-password/otp/*` (leads wala WhatsApp/TOTP reset — Nest Doc mein sirf email reset hai).
 Frontend delta: `OnboardingPage`, `BillingPage`, `PlanCards`, trial banner, `PaymentSuccessPage`; mobile: `PlanScreen`, Razorpay RN SDK.
 
 ---
@@ -262,11 +262,11 @@ Patient and Doctor models were restructured (firstName/lastName/contact/professi
 
 ## 12. Re-audit and gap closure (2026-10-17)
 
-Eka Care column is from public product knowledge, not a live check. Nest Care column is from the code.
+Eka Care column is from public product knowledge, not a live check. Nest Doc column is from the code.
 
 **Added in this round**
 
-| Eka Care feature | Nest Care now |
+| Eka Care feature | Nest Doc now |
 |---|---|
 | Follow-up tracking and reminders | Follow-ups page (overdue / today / 7 days / upcoming; not booked / booked / visited), call, WhatsApp reminder, book from the row. Hourly job reminds the day before once WhatsApp is connected |
 | Patient history / repeat visit view | Patients page, History button: visits, last visit, next visit or follow-up, amount due, full timeline (appointments, consultations, invoices, lab) |

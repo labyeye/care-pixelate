@@ -1,5 +1,5 @@
 /**
- * NestCare — patient-facing mobile app
+ * NestDoc — patient-facing mobile app
  *
  * @format
  */

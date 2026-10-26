@@ -97,6 +97,7 @@ app.use("/api/crm/metrics", tele.metrics);
 app.use("/api/crm/accounts", require("./utils/crmAccounts")("NESTCARE_SECRET", require("./utils/crmAdapter")));
 
 app.use("/api/auth", authLimiter, require("./routes/authRoutes"));
+app.use("/api/legal", require("./routes/legalRoutes"));
 app.use("/api/tenants", audit("tenant"), require("./routes/tenantRoutes"));
 app.use("/api/billing", require("./routes/billingRoutes"));
 app.use("/api/patients", audit("patient"), require("./routes/patientRoutes"));
@@ -155,7 +156,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.json({ success: true, message: "NestCare API" });
+  res.json({ success: true, message: "NestDoc API" });
 });
 
 app.use(notFound);
@@ -166,7 +167,7 @@ const PORT = process.env.PORT || 5050;
 app.listen(PORT, () => {
   if (process.env.NODE_ENV !== "test") require("./utils/reminders").start();
   if (process.env.NODE_ENV === "development") {
-    console.log(`NestCare API running on port ${PORT}`);
+    console.log(`NestDoc API running on port ${PORT}`);
   }
 });
 

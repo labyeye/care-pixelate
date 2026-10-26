@@ -225,25 +225,8 @@ const remove = asyncHandler(async (req, res) => {
   res.json({ success: true, data: {} });
 });
 
-// Readable temp password that always satisfies the policy (upper + lower + digit, 12 chars); no look-alikes.
-const tempPassword = () => {
-  const pick = (set, n) =>
-    Array.from(
-      { length: n },
-      () => set[require("crypto").randomInt(set.length)],
-    ).join("");
-  const raw =
-    pick("ABCDEFGHJKLMNPQRSTUVWXYZ", 4) +
-    pick("abcdefghijkmnpqrstuvwxyz", 5) +
-    pick("23456789", 3);
-  return raw
-    .split("")
-    .sort(() => require("crypto").randomInt(3) - 1)
-    .join("");
-};
-
-// POST /:id/reset-password { password? }: owner/admin sets a new password (generated when omitted) and signs the
-// person out everywhere. The plain password is returned once, to hand over; it is never stored or logged.
+// Random temporary password that always satisfies the password policy.
+const tempPassword = () => require("../utils/passwordPolicy").generatePassword(12);
 const resetPassword = asyncHandler(async (req, res) => {
   if (String(req.params.id) === String(req.user._id))
     fail(res, 400, "Change your own password from Settings");

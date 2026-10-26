@@ -163,7 +163,7 @@ export function MyLabReportsPage() {
     queryFn: portalAPI.labOrders,
   });
   const [view, setView] = useState<LabOrder | null>(null);
-  const org = tenant?.branding?.appName || tenant?.name || "NestCare";
+  const org = tenant?.branding?.appName || tenant?.name || "NestDoc";
   const abnormal = (o: LabOrder) =>
     o.tests.filter((t) => t.flag === "high" || t.flag === "low").length;
 

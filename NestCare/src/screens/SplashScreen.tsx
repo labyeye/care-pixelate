@@ -32,7 +32,7 @@ export default function SplashScreen({ navigation }: any) {
       >
         <HeartPulse size={40} color={colors.primary} />
       </View>
-      <Text style={[styles.wordmark, { color: colors.white }]}>NestCare</Text>
+      <Text style={[styles.wordmark, { color: colors.white }]}>NestDoc</Text>
       <Text style={[styles.tagline, { color: colors.white }]}>
         Your health, always within reach
       </Text>

@@ -66,7 +66,7 @@ export default function LoginScreen({ navigation }: any) {
           </View>
           <View>
             <Text style={[styles.brandName, { color: colors.text }]}>
-              NestCare
+              NestDoc
             </Text>
             <Text style={[styles.brandSub, { color: colors.mutedText }]}>
               Patient app

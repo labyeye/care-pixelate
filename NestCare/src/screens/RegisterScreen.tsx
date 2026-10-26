@@ -107,7 +107,7 @@ export default function RegisterScreen({ navigation }: any) {
         >
           <Info size={16} color={colors.primary} />
           <Text style={[styles.noteText, { color: colors.text }]}>
-            The NestCare backend currently only supports registering a new
+            The NestDoc backend currently only supports registering a new
             organisation (tenant) and its owner account. Self-service signup for
             a patient joining an existing clinic/hospital is not yet a backend
             capability — that will need a dedicated patient-invite or

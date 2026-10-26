@@ -636,7 +636,7 @@ export function PasswordResetScreen({ navigation, route }: any) {
                   icon={copied ? Check : Copy}
                   onPress={() => {
                     Share.share({
-                      message: `NestCare login\nEmail: ${issued?.email}\nPassword: ${issued?.password}`,
+                      message: `NestDoc login\nEmail: ${issued?.email}\nPassword: ${issued?.password}`,
                     })
                       .then(() => setCopied(true))
                       .catch(() => {});

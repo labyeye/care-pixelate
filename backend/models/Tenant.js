@@ -79,6 +79,8 @@ const tenantSchema = new mongoose.Schema(
     },
     // { [role]: [pageKey] } set from Settings -> Role permissions; missing roles use utils/permissions DEFAULTS
     rolePermissions: { type: mongoose.Schema.Types.Mixed, default: {} },
+    // owner-set security policy: doctors and admins must have an authenticator app before they can use the app
+    security: { requireMfa: { type: Boolean, default: false } },
     counters: {
       patient: { type: Number, default: 0 },
       doctor: { type: Number, default: 0 },

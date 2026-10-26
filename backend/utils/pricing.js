@@ -1,5 +1,5 @@
 // Per-doctor subscription pricing (clinic software norm), GST added on top,
-// yearly = 12x monthly (same rule as NestPlay). Amounts in rupees; x100 for paise.
+// yearly = 12x monthly (same rule as NestAcademy). Amounts in rupees; x100 for paise.
 // ponytail: prices are placeholders pending owner sign-off; edit PLANS only.
 const GST_RATE = 18;
 

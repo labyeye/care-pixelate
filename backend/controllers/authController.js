@@ -14,7 +14,7 @@ const Subscription = require("../models/Subscription");
 const { TRIAL } = require("../utils/pricing");
 const mongoose = require("mongoose");
 const totp = require("../utils/totp");
-const { sendWhatsAppOtp, sendPasswordResetEmail } = require("../utils/notify");
+const { sendWhatsAppOtp, sendPasswordResetEmail, sendSecurityAlertEmail } = require("../utils/notify");
 
 const ACCESS_COOKIE_MAX_AGE = 15 * 60 * 1000;
 const TEN_MIN = 10 * 60 * 1000;
@@ -90,7 +90,8 @@ const pendingSecret = () => `${process.env.JWT_SECRET}:2fa`;
 const signPending = (id) =>
   jwt.sign({ id, purpose: "2fa" }, pendingSecret(), { expiresIn: "5m" });
 
-const sendSession = (res, user) => {
+const sendSession = (req, res, user) => {
+  require("../utils/devices").noteSignIn(req, user);
   const token = signToken(user);
   setAuthCookies(res, token);
   res.json({
@@ -296,7 +297,7 @@ const registerAccount = asyncHandler(async (req, res) => {
     role: "tenant_owner",
     phone: phone10,
   });
-  sendSession(res.status(201), user);
+  sendSession(req, res.status(201), user);
 });
 
 // @desc    Final onboarding step: create the organisation (14-day trial) for a tenant-less owner
@@ -613,7 +614,7 @@ const login = asyncHandler(async (req, res) => {
     });
   }
 
-  sendSession(res, user);
+  sendSession(req, res, user);
 });
 
 // @desc    Finish login for a 2FA-enabled account
@@ -654,7 +655,7 @@ const verify2FA = asyncHandler(async (req, res) => {
     throw new Error("Invalid authenticator code");
   }
   assertActive(res, user);
-  sendSession(res, user);
+  sendSession(req, res, user);
 });
 
 // @desc    Get current authenticated user + tenant
@@ -928,7 +929,7 @@ const loginVerifyOtp = asyncHandler(async (req, res) => {
     throw new Error("Account is deactivated. Contact your administrator.");
   }
   // The WhatsApp OTP is itself the second factor; TOTP isn't asked again.
-  if (active.length === 1) return sendSession(res, active[0]);
+  if (active.length === 1) return sendSession(req, res, active[0]);
   res.json({
     success: true,
     data: {
@@ -961,7 +962,7 @@ const loginSelect = asyncHandler(async (req, res) => {
     throw new Error("Account not found");
   }
   assertActive(res, user);
-  sendSession(res, user);
+  sendSession(req, res, user);
 });
 
 // --- Account security (authenticated) ---
@@ -1064,7 +1065,31 @@ const totpDisable = asyncHandler(async (req, res) => {
   res.json({ success: true, data: {}, message: "Authenticator app disabled" });
 });
 
+// @route   PUT /api/auth/change-password { currentPassword, newPassword }
+const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  const user = await User.findById(req.user._id).select("+password +passwordHistory");
+  if (!currentPassword || !newPassword || !(await user.matchPassword(String(currentPassword)))) {
+    res.status(400);
+    throw new Error("Current password is incorrect");
+  }
+  user.password = String(newPassword); // policy + history are enforced by the model; the save bumps tokenVersion
+  await user.save();
+  sendSecurityAlertEmail({ to: user.email, name: user.name, what: "Your NestDoc password was just changed." }).catch(() => {});
+  sendSession(req, res, user); // this device stays signed in, every other one is signed out
+});
+
+// @route   POST /api/auth/logout-all: signs every device out (this one too)
+const logoutAll = asyncHandler(async (req, res) => {
+  await User.updateOne({ _id: req.user._id }, { $inc: { tokenVersion: 1 } });
+  res.clearCookie("access_token");
+  res.clearCookie("csrf_token");
+  res.json({ success: true, data: {} });
+});
+
 module.exports = {
+  changePassword,
+  logoutAll,
   registerTenant,
   registerAccount,
   onboard,

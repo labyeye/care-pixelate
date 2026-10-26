@@ -1,4 +1,4 @@
-# Nest Care — Third-party API Requirements
+# Nest Doc — Third-party API Requirements
 
 Date: 2026-10-15
 Basis: `NESTCARE_VS_EKACARE_AUDIT.md` phases + `backend/` env vars/package.json (verified from code).

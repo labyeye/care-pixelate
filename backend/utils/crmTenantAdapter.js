@@ -1,8 +1,9 @@
-// Adapter for tenant-based products (Nest Leads, Nest Gym, Nest Care) for utils/crmAccounts.js.
+// Adapter for tenant-based products (Nest Leads, Nest Gym, Nest Doc) for utils/crmAccounts.js.
 // Account = Tenant (plan, planExpiresAt, status, limits.*), logins = User { tenantId }, owner = Tenant.ownerUser.
 // Each product passes a small config from its own utils/crmAdapter.js. Custom plan name/features are stored on the
 // Tenant (customPlanName / customFeatures) and shown on the customer's billing page.
 const { helpers: H } = require("./crmAccounts");
+const terms = require("./terms");
 
 module.exports = (cfg) => {
   const { Tenant, User } = cfg;
@@ -28,7 +29,7 @@ module.exports = (cfg) => {
     accountExtraFields: [],
   };
 
-  const userView = (u, ownerId) => ({ id: u._id, name: u.name, email: u.email, role: u.role, status: u.status, phone: u.phone, lastLogin: u.lastLogin, isOwner: String(u._id) === String(ownerId) });
+  const userView = (u, ownerId) => ({ id: u._id, name: u.name, email: u.email, role: u.role, status: u.status, phone: u.phone, lastLogin: u.lastLogin, terms: terms.userState(u), termsAcceptedAt: u.termsAcceptedAt, isOwner: String(u._id) === String(ownerId) });
   const subView = (t) => ({
     plan: t.plan, status: t.status, validTill: t.planExpiresAt, isTrial: t.plan === "trial",
     customPlanName: t.customPlanName, customFeatures: t.customFeatures || [], limits: limitsOf(t), flags: {},
@@ -49,9 +50,11 @@ module.exports = (cfg) => {
       const tenants = await Tenant.find(q).select("name plan planExpiresAt status limits usage ownerUser createdAt").sort({ createdAt: -1 }).limit(500).populate("ownerUser", "email phone lastLogin").lean();
       const counts = await User.aggregate([{ $match: { tenantId: { $in: tenants.map((t) => t._id) } } }, { $group: { _id: "$tenantId", n: { $sum: 1 } } }]);
       const n = Object.fromEntries(counts.map((c) => [String(c._id), c.n]));
+      const tstat = await terms.stats(User, "tenantId", tenants.map((t) => t._id));
       return tenants.map((t) => ({
         id: t._id, name: t.name, email: t.ownerUser?.email, phone: t.ownerUser?.phone, status: t.status, plan: t.plan,
         validTill: t.planExpiresAt, usage: cfg.usage(t, n[String(t._id)] || 0), lastLogin: t.ownerUser?.lastLogin, createdAt: t.createdAt,
+        terms: terms.label(tstat[String(t._id)]), termsCount: tstat[String(t._id)] ? `${tstat[String(t._id)].done}/${tstat[String(t._id)].need}` : "—",
       }));
     },
 
@@ -60,7 +63,7 @@ module.exports = (cfg) => {
       if (!t) throw H.fail("Account not found", 404);
       const [owner, users] = await Promise.all([
         User.findById(t.ownerUser).select("email phone").lean(),
-        User.find({ tenantId: t._id, role: { $nin: cfg.hideRoles || [] } }).select("name email role status phone lastLogin").sort({ createdAt: 1 }).limit(300).lean(),
+        User.find({ tenantId: t._id, role: { $nin: cfg.hideRoles || [] } }).select("name email role status phone lastLogin termsVersion termsAcceptedAt role").sort({ createdAt: 1 }).limit(300).lean(),
       ]);
       return { account: accountView(t, owner), subscription: subView(t), users: users.filter(shownRoles).map((u) => userView(u, t.ownerUser)), usage: cfg.usageDetail ? cfg.usageDetail(t) : {} };
     },

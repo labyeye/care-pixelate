@@ -31,17 +31,17 @@ export function AuthShell({
         <div className="relative z-10 flex items-center gap-3">
           <img
             src={logoShort}
-            alt="NestCare"
+            alt="NestDoc"
             className="w-14 h-14 object-contain"
           />
           <span className="font-display font-bold text-white text-2xl">
-            NestCare
+            NestDoc
           </span>
         </div>
         <img
           src={loginDash}
           alt="Dashboard preview"
-          className="relative z-10 max-w-3xl mx-auto"
+          className="relative z-10 max-w-auto mx-auto"
         />
         <div className="relative z-10">
           <h1 className="text-3xl xl:text-4xl font-display font-bold text-white leading-tight mb-5">
@@ -73,7 +73,7 @@ export function AuthShell({
           <div className="lg:hidden mb-8">
             <img
               src={logoLong}
-              alt="NestCare"
+              alt="NestDoc"
               className="h-12 object-contain"
             />
           </div>

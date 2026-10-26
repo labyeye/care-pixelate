@@ -52,7 +52,7 @@ const { MongoMemoryReplSet } = require("mongodb-memory-server");
     name: "Pharma Owner",
     email: "owner@smoke.test",
     phone: "9876543210",
-    password: "Passw0rdA",
+    password: "Kx7#mQv29!",
     acceptTerms: true,
   });
   ok(r, 201, "register");
@@ -64,6 +64,7 @@ const { MongoMemoryReplSet } = require("mongodb-memory-server");
     doctorCount: 1,
   });
   ok(r, 201, "onboard");
+  ok(await call("POST", "/legal/accept", {}), 200, "accept terms");
   step("account + organisation created");
 
   r = await call("POST", "/vendors", {

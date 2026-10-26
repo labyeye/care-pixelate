@@ -34,7 +34,7 @@ export default function AIAssistantScreen({ navigation }: any) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '0',
-      text: 'Hi! I am your NestCare AI Assistant (demo). Ask me anything about your health.',
+      text: 'Hi! I am your NestDoc AI Assistant (demo). Ask me anything about your health.',
       fromMe: false,
     },
   ]);

@@ -1,5 +1,6 @@
 const PaymentReturnPage = lazy(() => import("./pages/PaymentReturnPage"));
 import { useUsageTracker } from "@/hooks/useUsageTracker";
+import TermsGate from "@/components/TermsGate";
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
@@ -415,6 +416,7 @@ function App() {
         <AuthProvider>
           <BrowserRouter>
             <AppRoutes />
+            <TermsGate />
           </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>

@@ -277,7 +277,7 @@ export default function LabOrdersPage() {
   const sendWhatsApp = (o: LabOrder) => {
     const url = whatsappUrl(
       o,
-      tenant?.branding?.appName || tenant?.name || "NestCare",
+      tenant?.branding?.appName || tenant?.name || "NestDoc",
     );
     if (!url) return toast.error("This patient has no mobile number on file");
     window.open(url, "_blank", "noopener");
@@ -568,7 +568,7 @@ export default function LabOrdersPage() {
                               o,
                               tenant?.branding?.appName ||
                                 tenant?.name ||
-                                "NestCare",
+                                "NestDoc",
                             )
                           }
                         >
@@ -915,7 +915,7 @@ export default function LabOrdersPage() {
                   onClick={() =>
                     downloadLabPdf(
                       view,
-                      tenant?.branding?.appName || tenant?.name || "NestCare",
+                      tenant?.branding?.appName || tenant?.name || "NestDoc",
                     )
                   }
                 >

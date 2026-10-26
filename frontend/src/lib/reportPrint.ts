@@ -50,7 +50,7 @@ export function printReport(opts: {
 <div class="top"><div><h1>${esc(opts.orgName)}</h1><div class="meta">${esc(opts.title)} · ${esc(opts.period)}</div></div>
 <div><span class="tag">${esc(opts.category)}</span></div></div>
 <table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
-<div class="foot">Generated ${esc(new Date().toLocaleString("en-IN"))} · NestCare</div>
+<div class="foot">Generated ${esc(new Date().toLocaleString("en-IN"))} · NestDoc</div>
 </body></html>`, true);
   return true;
 }

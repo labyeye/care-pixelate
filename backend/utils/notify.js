@@ -53,14 +53,33 @@ async function sendPasswordResetEmail({ to, userName, resetUrl }) {
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
   });
   await transporter.sendMail({
-    from: `"NestCare" <${process.env.SMTP_USER}>`,
+    from: `"NestDoc" <${process.env.SMTP_USER}>`,
     to,
-    subject: "Reset your NestCare password",
+    subject: "Reset your NestDoc password",
     html: `<p>Hi ${String(userName).replace(/[<>&]/g, "")},</p>
-<p>Click the link below to reset your NestCare password. It expires in 1 hour.</p>
+<p>Click the link below to reset your NestDoc password. It expires in 1 hour.</p>
 <p><a href="${resetUrl}">Reset password</a></p>
 <p>If you didn't request this, you can ignore this email.</p>`,
   });
 }
 
-module.exports = { sendWhatsAppOtp, sendPasswordResetEmail };
+// Heads-up after a security-relevant event (new device, password change). Best effort.
+async function sendSecurityAlertEmail({ to, name, what }) {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return;
+  const esc = (v) => String(v).replace(/[<>&"]/g, "");
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: parseInt(process.env.SMTP_PORT || "587", 10),
+    secure: process.env.SMTP_SECURE === "true",
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+  await transporter.sendMail({
+    from: `"NestDoc" <${process.env.SMTP_USER}>`,
+    to,
+    subject: "NestDoc - Security alert",
+    html: `<p>Hello ${esc(name || "there")},</p><p>${esc(what)}</p><p>If this was not you, reset your password straight away and contact support@pixelatenest.com.</p>`,
+    text: what,
+  });
+}
+
+module.exports = { sendWhatsAppOtp, sendPasswordResetEmail, sendSecurityAlertEmail };

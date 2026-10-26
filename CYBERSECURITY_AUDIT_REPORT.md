@@ -1,11 +1,11 @@
-# NestCare — Cybersecurity, Bug, Dead-code & Performance Audit
+# NestDoc — Cybersecurity, Bug, Dead-code & Performance Audit
 
 Scope: `backend/` (Express + Mongoose, multi-tenant), `frontend/` (React/Vite, web + patient portal + designers). The React-Native app (`NestCare/NestCare`) was only checked for how it uses the auth endpoints.
 Method: manual review of the auth, billing, payment, portal, upload and print paths; route-guard map; tenant-scoping scan of every controller query; ESLint / tsc / orphan / N+1 scans; `npm audit`; offline proof tests (stubbed models) **plus the existing end-to-end smoke test, which runs the real app against an in-memory MongoDB — no live system and no live database was touched**. Pre-change snapshot: `scratchpad/backups/nestcare-pre-audit.tgz`. Nothing was committed.
 
 ## 1. Summary
 
-NestCare is the best-built of the four: every data route sits behind `protect → requirePlan → tenantScope → authorize/pageAccess`, controllers filter by `req.tenantId`, searches are regex-escaped, request bodies are whitelisted with `pick()`, payments are re-verified with the gateway and are idempotent, and the audit log never stores bodies. The tenant-isolation scan (54 candidate queries) found **no cross-tenant read or write**. The gaps are in the session / OTP layer, which was copied from the same design as the other apps.
+NestDoc is the best-built of the four: every data route sits behind `protect → requirePlan → tenantScope → authorize/pageAccess`, controllers filter by `req.tenantId`, searches are regex-escaped, request bodies are whitelisted with `pick()`, payments are re-verified with the gateway and are idempotent, and the audit log never stores bodies. The tenant-isolation scan (54 candidate queries) found **no cross-tenant read or write**. The gaps are in the session / OTP layer, which was copied from the same design as the other apps.
 
 | Area | Findings | Fixed now | Left (needs your decision) |
 |---|---|---|---|

@@ -76,7 +76,7 @@ ${c.diagnosis?.length ? `<div class="sec"><div class="lbl">Diagnosis</div>${esc(
 ${items.length ? `<table><thead><tr><th>#</th><th>Medicine</th><th>Dose</th><th>Frequency</th><th>Duration</th><th>Instructions</th></tr></thead><tbody>${rows}</tbody></table>` : "<i>No medicines prescribed.</i>"}
 </div>
 ${c.prescription?.advice ? `<div class="sec"><div class="lbl">Advice</div>${esc(c.prescription.advice)}</div>` : ""}
-<div class="foot"><div style="font-size:8pt;color:#666">Digitally issued via NestCare</div><div class="sig"><div class="line"></div><b>Dr. ${esc((d?.name || "").replace(/^Dr\.?\s+/i, ""))}</b></div></div>
+<div class="foot"><div style="font-size:8pt;color:#666">Digitally issued via NestDoc</div><div class="sig"><div class="line"></div><b>Dr. ${esc((d?.name || "").replace(/^Dr\.?\s+/i, ""))}</b></div></div>
 <div class="note">This is a computer-generated prescription. Take medicines only as advised by your doctor.</div>
 </div></body></html>`;
 }

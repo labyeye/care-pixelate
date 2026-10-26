@@ -33,6 +33,8 @@ router.post("/login/select", sensitiveLimiter, c.loginSelect);
 router.get("/me", protectAccount, c.getMe);
 router.post("/onboard", protectAccount, c.onboard);
 router.post("/logout", protectAccount, c.logout);
+router.put("/change-password", protect, sensitiveLimiter, c.changePassword);
+router.post("/logout-all", protect, c.logoutAll);
 router.post("/phone/send-otp", protect, sensitiveLimiter, c.sendPhoneOtp);
 router.post("/phone/verify-otp", protect, sensitiveLimiter, c.verifyPhoneOtp);
 router.post("/2fa/totp/setup", protect, c.totpSetup);

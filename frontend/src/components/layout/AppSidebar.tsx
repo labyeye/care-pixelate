@@ -37,7 +37,7 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
   if (!user) return null;
 
   const groups = getNavGroupsForRole(user.role, tenant?.orgType, pages);
-  const orgName = tenant?.branding?.appName || tenant?.name || "NestCare";
+  const orgName = tenant?.branding?.appName || tenant?.name || "NestDoc";
 
   const toggle = () =>
     setCollapsed((c) => {
@@ -61,7 +61,7 @@ export function AppSidebar({ mobileOpen, onMobileClose }: AppSidebarProps) {
       >
         <img
           src={slim ? logoShort : logoLong}
-          alt="NestCare"
+          alt="NestDoc"
           className={cn("object-contain", slim ? "h-10 w-10" : "h-12 w-auto")}
         />
         {!slim && (

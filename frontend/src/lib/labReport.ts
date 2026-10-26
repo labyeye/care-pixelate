@@ -40,7 +40,7 @@ export function downloadLabPdf(o: LabOrder, orgName: string) {
   doc
     .setFont("helvetica", "bold")
     .setFontSize(18)
-    .text(orgName || "NestCare", 40, 48);
+    .text(orgName || "NestDoc", 40, 48);
   doc
     .setFontSize(11)
     .setFont("helvetica", "normal")
@@ -130,7 +130,7 @@ export function downloadLabPdf(o: LabOrder, orgName: string) {
     .setFontSize(8)
     .setTextColor(120)
     .text(
-      `Generated ${stamp(new Date().toISOString())} · NestCare`,
+      `Generated ${stamp(new Date().toISOString())} · NestDoc`,
       40,
       doc.internal.pageSize.getHeight() - 28,
     );
@@ -145,7 +145,7 @@ export function whatsappUrl(o: LabOrder, orgName: string): string | null {
   if (digits.length < 10) return null;
   const phone = digits.length === 10 ? `91${digits}` : digits;
   const lines = [
-    `*${orgName || "NestCare"} — Lab report*`,
+    `*${orgName || "NestDoc"} — Lab report*`,
     `Order: ${o.number}`,
     p ? `Patient: ${p.name}${p.patientId ? ` (${p.patientId})` : ""}` : "",
     `Ordered: ${stamp(o.createdAt)}`,

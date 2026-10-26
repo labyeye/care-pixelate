@@ -1,4 +1,4 @@
-// Staff-side API: the same endpoints the NestCare web app uses, called with the Bearer token.
+// Staff-side API: the same endpoints the NestDoc web app uses, called with the Bearer token.
 import { request } from '../services/api';
 
 type Res<T> = {

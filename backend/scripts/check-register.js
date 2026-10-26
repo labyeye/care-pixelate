@@ -73,7 +73,7 @@ const ok = {
   orgType: "clinic",
   ownerName: "Dr A",
   email: "A@x.com",
-  password: "Passw0rdX",
+  password: "Kx7#mQv29!X",
   phone: "+91 98765 43210",
   acceptTerms: true,
 };

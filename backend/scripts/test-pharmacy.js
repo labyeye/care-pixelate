@@ -1093,7 +1093,7 @@ const call = async (fn, req) => {
       const u = await M("User").create({
         name: `${first} ${last}`,
         email: `${first}.${last}.${phone}@fam.test`.toLowerCase(),
-        password: "Passw0rdA",
+        password: "Kx7#mQv29!",
         role: "patient",
         phone,
         tenantId: A.t._id,

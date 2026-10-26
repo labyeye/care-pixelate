@@ -50,7 +50,7 @@ const otpHash = (otp) => crypto.createHmac("sha256", process.env.JWT_SECRET).upd
 
 (async () => {
   // 1. protect(): stale tokenVersion, purpose tokens and foreign signatures are refused; a current token passes
-  dbUser = { _id: "u1", role: "tenant_owner", status: "active", tenantId: "t1", tokenVersion: 1 };
+  dbUser = { _id: "u1", role: "tenant_owner", status: "active", tenantId: "t1", tokenVersion: 1, termsVersion: require("../utils/terms").VERSION };
   const via = async (tok) => (await run(protect, { headers: { authorization: "Bearer " + tok }, cookies: {} })).err === undefined;
   assert.ok(await via(sign({ id: "u1", tv: 1 })), "current token works");
   assert.ok(!(await via(sign({ id: "u1", tv: 0 }))), "token from before a password change is refused");

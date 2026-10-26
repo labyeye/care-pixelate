@@ -140,7 +140,7 @@ export default function RegisterTenantPage() {
           Create account
         </h2>
         <p className="mb-8 text-sm text-muted-foreground">
-          Set up your NestCare workspace ·{" "}
+          Set up your NestDoc workspace ·{" "}
           <Link
             to="/login"
             className="font-bold text-black underline hover:text-[#FA731C] transition-colors"

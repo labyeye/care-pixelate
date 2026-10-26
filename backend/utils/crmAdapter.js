@@ -1,4 +1,4 @@
-// Nest Care side of utils/crmAccounts.js.
+// Nest Doc side of utils/crmAccounts.js.
 const Tenant = require("../models/Tenant");
 module.exports = require("./crmTenantAdapter")({
   label: "Hospital / clinic",

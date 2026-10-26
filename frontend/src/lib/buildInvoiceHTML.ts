@@ -1,5 +1,5 @@
 import { writePrintDocument } from "./printWindow";
-// Printable A4 invoice. Same layout and styling as the NestHR / NestPlay / NestLeads billing PDF
+// Printable A4 invoice. Same layout and styling as the NestHR / NestAcademy / NestLeads billing PDF
 // (bordered "TAX INVOICE" sheet: title bar, seller + meta header, bill-to row, line table, amount in
 // words, totals, HSN tax table, declaration + signature), filled with a clinic invoice instead of a
 // subscription receipt. Opened in a print window, so "Save as PDF" gives the file.

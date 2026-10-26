@@ -1,12 +1,14 @@
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/User");
+const terms = require("../utils/terms");
 const { effectivePages, PAGE_KEYS, canOpen } = require("../utils/permissions");
 const Tenant = require("../models/Tenant");
 
 // `allowNoTenant` lets a freshly-registered owner (no organisation yet) through
 // to the account/onboarding routes only. Every data route uses `protect`
 // below, which still refuses tenant-less users, so tenant isolation holds.
+const MFA_ROLES = ["doctor", "tenant_owner", "hospital_admin"];
 const authenticate = (allowNoTenant) =>
   asyncHandler(async (req, res, next) => {
     let token;
@@ -52,6 +54,7 @@ const authenticate = (allowNoTenant) =>
       user.role === "tenant_owner"
     ) {
       req.user = user;
+      if (terms.blocks(req)) return terms.refuse(res);
       return next();
     }
 
@@ -61,11 +64,23 @@ const authenticate = (allowNoTenant) =>
         throw new Error("No organisation associated with this account");
       }
       const tenant = await Tenant.findById(user.tenantId).select(
-        "status planExpiresAt rolePermissions",
+        "status planExpiresAt rolePermissions security",
       );
       if (!tenant || tenant.status !== "active") {
         res.status(403);
         throw new Error("Your organisation's account is not active");
+      }
+      if (
+        tenant.security?.requireMfa &&
+        MFA_ROLES.includes(user.role) &&
+        !user.totpEnabled &&
+        !/^\/api\/(auth|legal)(\/|\?|$)/.test(req.originalUrl)
+      ) {
+        return res.status(403).json({
+          success: false,
+          code: "MFA_REQUIRED",
+          message: "Your organisation requires two-factor authentication. Turn it on in Settings > Security to continue.",
+        });
       }
       req.planExpired = !!(
         tenant.planExpiresAt && tenant.planExpiresAt < new Date()
@@ -76,6 +91,7 @@ const authenticate = (allowNoTenant) =>
     }
 
     req.user = user;
+    if (terms.blocks(req)) return terms.refuse(res);
     next();
   });
 

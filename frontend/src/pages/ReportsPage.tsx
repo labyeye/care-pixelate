@@ -329,7 +329,7 @@ function ReportGen({
     const ok = printReport({
       title,
       period,
-      orgName: tenant?.branding?.appName || tenant?.name || "NestCare",
+      orgName: tenant?.branding?.appName || tenant?.name || "NestDoc",
       category: CATEGORY_META[category].label,
       headers: data.columns.map((c) => c.label),
       rows: tableRows(),

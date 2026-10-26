@@ -257,7 +257,7 @@ export default function OnboardingPage() {
           order_id: order.orderId,
           amount: order.amount,
           currency: order.currency,
-          name: "NestCare",
+          name: "NestDoc",
           description: `${plan?.name} · ${count} doctor(s) · ${cycle}`,
           theme: { color: "#024BAB" },
           prefill: {
@@ -307,7 +307,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-[#F0F6FF]">
       <header className="sticky top-0 z-10 border-b-2 border-black bg-white">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-6">
-          <img src={logoLong} alt="NestCare" className="h-9 object-contain" />
+          <img src={logoLong} alt="NestDoc" className="h-9 object-contain" />
           <button
             onClick={logout}
             className="text-sm font-bold text-black transition-colors hover:text-[#024BAB]"

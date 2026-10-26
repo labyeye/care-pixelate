@@ -1,4 +1,4 @@
-// Tax invoice PDF for a NestCare subscription payment. Same sheet as the NestHR / NestLeads / NestSports
+// Tax invoice PDF for a NestDoc subscription payment. Same sheet as the NestHR / NestLeads / NestSports
 // billing PDF (opened in a print window, "Save as PDF" gives the file), filled from the tenant + subscription invoice.
 import { PIXELATE_NEST_LOGO } from "./invoiceLogo";
 import { escapeHtml as esc } from "./escapeHtml";
@@ -141,7 +141,7 @@ export function buildSubscriptionInvoiceHTML(
   const doctors = Math.max(1, Number(inv.doctors) || 1);
   const cycle = inv.billingCycle === "yearly" ? "Annual" : "Monthly";
   const description = esc(
-    `NestCare ${planName} — ${doctors} doctor${doctors > 1 ? "s" : ""} — ${cycle} Subscription`,
+    `NestDoc ${planName} — ${doctors} doctor${doctors > 1 ? "s" : ""} — ${cycle} Subscription`,
   );
 
   const invoiceDate = fmtDate(inv.paidAt || inv.createdAt);
@@ -257,7 +257,7 @@ td { padding: 7px 5px; font-size: 8pt; color: #111; border-bottom: 0.5pt solid #
 
   <div class="title-bar">
     <h1>TAX INVOICE</h1>
-    <p>Original for Recipient · NestCare subscription</p>
+    <p>Original for Recipient · NestDoc subscription</p>
   </div>
 
   <div class="header-row">

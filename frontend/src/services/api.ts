@@ -1036,3 +1036,15 @@ export const staffAPI = {
       { method: "POST", body: JSON.stringify({ password }) },
     ),
 };
+
+// Terms & Privacy acceptance (backend /api/legal). Used by components/TermsGate.
+export const legalAPI = {
+  status: async () => {
+    const r: any = await request("/legal/status");
+    return r.data ?? r;
+  },
+  accept: async () => {
+    const r: any = await request("/legal/accept", { method: "POST", body: JSON.stringify({}) });
+    return r.data ?? r;
+  },
+};

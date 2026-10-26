@@ -7,6 +7,7 @@ const RESERVED = new Set([
   "login",
   "register",
   "nestcare",
+  "nestdoc",
   "support",
   "billing",
 ]);

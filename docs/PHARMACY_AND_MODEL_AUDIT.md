@@ -1,4 +1,4 @@
-# NestCare — Model audit, relationships and pharmacy inventory
+# NestDoc — Model audit, relationships and pharmacy inventory
 
 Status: implemented and tested. Every claim below was checked against the repository; test results at the end are from real runs.
 

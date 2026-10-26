@@ -433,7 +433,7 @@ export function BillingScreen({ navigation }: any) {
           </Section>
         )}
         <Text style={{ color: C.muted, fontSize: 12, textAlign: 'center' }}>
-          To change or renew your plan, sign in to NestCare on the web.
+          To change or renew your plan, sign in to NestDoc on the web.
         </Text>
       </ScrollBody>
     </Screen>
@@ -474,7 +474,7 @@ export function SettingsScreen({ navigation }: any) {
           kind="danger"
           icon={LogOut}
           onPress={() =>
-            Alert.alert('Sign out', 'Sign out of NestCare?', [
+            Alert.alert('Sign out', 'Sign out of NestDoc?', [
               { text: 'Cancel', style: 'cancel' },
               {
                 text: 'Sign out',

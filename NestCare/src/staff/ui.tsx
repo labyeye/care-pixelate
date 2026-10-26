@@ -1,4 +1,4 @@
-// NestCare staff app UI kit — same look as NestHR / NestLeads / NestSports mobile:
+// NestDoc staff app UI kit — same look as NestHR / NestLeads / NestSports mobile:
 // white cards, 2px black border, 8px radius, heavy right/bottom edge, uppercase bold labels.
 import React from 'react';
 import {

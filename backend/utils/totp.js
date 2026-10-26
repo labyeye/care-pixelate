@@ -15,7 +15,7 @@ const verifyToken = (token, secret) => {
 };
 
 const qrFor = async (email, secret) => {
-  const otpauthUrl = authenticator.keyuri(email, "NestCare", secret);
+  const otpauthUrl = authenticator.keyuri(email, "NestDoc", secret);
   return { otpauthUrl, qrCode: await QRCode.toDataURL(otpauthUrl) };
 };
 

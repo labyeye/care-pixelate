@@ -182,7 +182,7 @@ export default function BillingPage() {
           order_id: order.orderId,
           amount: order.amount,
           currency: order.currency,
-          name: "NestCare",
+          name: "NestDoc",
           description: `${plan?.name} · ${count} doctor(s) · ${cycle}`,
           prefill: {
             name: user?.name,
@@ -226,7 +226,7 @@ export default function BillingPage() {
         <div className="flex h-[60vh] items-center justify-center">
           <img
             src={logoLong}
-            alt="NestCare"
+            alt="NestDoc"
             className="h-16 w-auto animate-pulse"
           />
         </div>
@@ -289,7 +289,7 @@ export default function BillingPage() {
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Your plan has expired. Choose a plan below to continue using
-                NestCare.
+                NestDoc.
               </p>
             </div>
           </div>
@@ -621,17 +621,6 @@ export default function BillingPage() {
                   </div>
                   <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground" />
                 </button>
-                <div className="flex w-full cursor-not-allowed items-center gap-4 border-2 border-gray-200 p-4 opacity-50">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center border-2 border-gray-200 bg-gray-300">
-                    <Building2 className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-400">
-                      HDFC SmartGateway
-                    </p>
-                    <p className="text-xs text-gray-400">Coming soon</p>
-                  </div>
-                </div>
                 <p className="flex items-center justify-center gap-1 pt-2 text-center text-xs text-muted-foreground">
                   <ShieldCheck className="h-3 w-3" /> All payments are 256-bit
                   encrypted

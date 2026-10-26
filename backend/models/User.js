@@ -71,6 +71,9 @@ const userSchema = new mongoose.Schema(
     // Brute-force guard: the 4th wrong password locks the account for 30 minutes (WhatsApp OTP unlocks).
     failedLogins: { type: Number, default: 0 },
     lockUntil: { type: Date },
+    lastLogin: { type: Date },
+    // Fingerprints (hash of browser/app + platform) of devices that have signed in; a new one triggers an email.
+    knownDevices: { type: [{ hash: String, name: String, at: { type: Date, default: Date.now } }], default: [], select: false },
   },
   { timestamps: true },
 );
@@ -87,5 +90,15 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
+
+// Terms & Privacy acceptance (see utils/terms.js)
+userSchema.add({
+  termsVersion: { type: String },
+  termsAcceptedAt: { type: Date },
+  termsAcceptedIp: { type: String },
+  termsAcceptedAgent: { type: String },
+});
+
+require("../utils/passwordPolicy").addPasswordPolicy(userSchema);
 
 module.exports = mongoose.model("User", userSchema);
