@@ -212,6 +212,40 @@ export const billingAPI = {
     }),
 };
 
+export const creditsAPI = {
+  balance: () => request<any>("/credits/balance"),
+  packs: () =>
+    request<{ packs: any[]; gstPct: number; ratePerMessage: number }>(
+      "/credits/packs",
+    ),
+  estimate: () =>
+    request<{
+      appointmentReminders: number;
+      followUpReminders: number;
+      credits: number;
+    }>("/credits/estimate"),
+  topups: () => request<any[]>("/credits/topups"),
+  // the list endpoint also returns `total` next to `data`, so it needs the whole body
+  ledger: async (page = 1, type = "") =>
+    (await requestBody<any[]>(
+      `/credits/ledger?page=${page}${type ? `&type=${type}` : ""}`,
+    )) as unknown as { data: any[]; total: number; page: number },
+  createTopup: (packId: string) =>
+    request<any>("/credits/topup", {
+      method: "POST",
+      body: JSON.stringify({ packId }),
+    }),
+  verifyTopup: (payload: {
+    razorpayOrderId: string;
+    razorpayPaymentId: string;
+    razorpaySignature: string;
+  }) =>
+    request<any>("/credits/topup/verify", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+};
+
 export const authAPI = {
   /** Step 1: account only. The organisation is created in `onboard`. */
   register: (payload: {

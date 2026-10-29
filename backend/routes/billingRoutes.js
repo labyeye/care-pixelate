@@ -228,6 +228,10 @@ router.post(
     });
     await subscription.save();
 
+    require("../utils/credits")
+      .onSubscriptionPaid(req.tenantId, { amountPaid: pending.amount, refId: paymentId })
+      .catch((err) => console.error("[Credits]", err.message));
+
     await Tenant.findByIdAndUpdate(req.tenantId, {
       plan: pending.plan,
       planExpiresAt: end,

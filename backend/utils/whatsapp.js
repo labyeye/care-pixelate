@@ -7,14 +7,19 @@
 const Tenant = require("../models/Tenant");
 const MessageLog = require("../models/MessageLog");
 const { BY_KEY, params } = require("./whatsappTemplates");
+const credits = require("./credits");
 
-const isConnected = () => false;
-
-// eslint-disable-next-line no-unused-vars
-async function deliver({ to, template, vars }) {
-  // TODO(whatsapp-api): POST to the provider with { to, template: template.name, language: template.language, params: params(template.key, vars) }
-  throw new Error("WhatsApp API is not connected yet");
-}
+// The Meta call lives behind `driver` so a check can swap it; production uses the defaults below.
+const driver = {
+  isConnected: () => false,
+  // eslint-disable-next-line no-unused-vars
+  async deliver({ to, template, vars }) {
+    // TODO(whatsapp-api): POST to the provider with { to, template: template.name, language: template.language, params: params(template.key, vars) }
+    // and return { id: <message id> } so the credit charged for it can be tied to the message.
+    throw new Error("WhatsApp API is not connected yet");
+  },
+};
+const isConnected = () => driver.isConnected();
 
 // Indian numbers: 10 digits (or 0/91 prefixed) -> 91XXXXXXXXXX. Anything else is rejected.
 const waNumber = (p) => {
@@ -56,7 +61,21 @@ async function sendTemplate({ tenantId, key, to, vars = {}, ref }) {
     if (!num) return log("skipped", "Patient has no valid mobile number");
     if (!isConnected())
       return log("not_connected", "WhatsApp API is not connected yet");
-    await deliver({ to: num, template, vars });
+    // WhatsApp credits: a metered clinic pays per message, charged before sending and refunded if the send fails.
+    const hold = await credits.reserve(tenantId, { kind: key, phone: num });
+    if (!hold.ok)
+      return {
+        ...(await log("skipped", hold.reason === "daily_cap" ? "Daily message limit reached" : "Not enough WhatsApp credits")),
+        code: "NO_CREDITS",
+      };
+    let delivered;
+    try {
+      delivered = await driver.deliver({ to: num, template, vars });
+    } catch (err) {
+      await credits.refund(hold);
+      throw err;
+    }
+    await credits.commit(hold, delivered?.id);
     return log("sent");
   } catch (err) {
     return log("failed", String(err.message || err).slice(0, 200)).catch(
@@ -164,6 +183,7 @@ async function notifyPatient({
 }
 
 module.exports = {
+  _driver: driver, // for checks only
   sendTemplate,
   notifyAppointment,
   notifyPatient,

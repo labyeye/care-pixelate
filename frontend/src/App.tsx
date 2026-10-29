@@ -14,7 +14,9 @@ import {
 import { isStaffPath, pagesForPath } from "@/config/navigation";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { CreditsProvider } from "@/contexts/CreditsContext";
 const CalendarPage = lazy(() => import("@/pages/CalendarPage"));
+const CreditsPage = lazy(() => import("@/pages/CreditsPage"));
 const ConsultationPage = lazy(() => import("@/pages/ConsultationPage"));
 const ConsultationsPage = lazy(() => import("@/pages/ConsultationsPage"));
 const FollowUpsPage = lazy(() => import("@/pages/FollowUpsPage"));
@@ -401,6 +403,14 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/credits"
+        element={
+          <ProtectedRoute>
+            <CreditsPage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
@@ -414,10 +424,12 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <AuthProvider>
-          <BrowserRouter>
-            <AppRoutes />
-            <TermsGate />
-          </BrowserRouter>
+          <CreditsProvider>
+            <BrowserRouter>
+              <AppRoutes />
+              <TermsGate />
+            </BrowserRouter>
+          </CreditsProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>

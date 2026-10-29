@@ -100,6 +100,7 @@ app.use("/api/auth", authLimiter, require("./routes/authRoutes"));
 app.use("/api/legal", require("./routes/legalRoutes"));
 app.use("/api/tenants", audit("tenant"), require("./routes/tenantRoutes"));
 app.use("/api/billing", require("./routes/billingRoutes"));
+app.use("/api/credits", require("./routes/creditsRoutes"));
 app.use("/api/patients", audit("patient"), require("./routes/patientRoutes"));
 app.use("/api/doctors", require("./routes/doctorRoutes"));
 app.use(

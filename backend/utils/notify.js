@@ -82,4 +82,26 @@ async function sendSecurityAlertEmail({ to, name, what }) {
   });
 }
 
-module.exports = { sendWhatsAppOtp, sendPasswordResetEmail, sendSecurityAlertEmail };
+// Heads-up that WhatsApp credits are low / finished. Best effort.
+async function sendLowCreditsEmail({ to, name, credits, zero }) {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return;
+  const esc = (v) => String(v).replace(/[<>&"]/g, "");
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: parseInt(process.env.SMTP_PORT || "587", 10),
+    secure: process.env.SMTP_SECURE === "true",
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+  const what = zero
+    ? "Your NestDoc WhatsApp credits are 0. Appointment reminders and other patient messages are paused until you add credits. Login OTPs are not affected."
+    : `You have ${credits} NestDoc WhatsApp credits left. Add credits so messages to your patients do not stop.`;
+  await transporter.sendMail({
+    from: `"NestDoc" <${process.env.SMTP_USER}>`,
+    to,
+    subject: zero ? "NestDoc - WhatsApp credits finished, messages are paused" : "NestDoc - WhatsApp credits are running low",
+    html: `<p>Hello ${esc(name || "there")},</p><p>${esc(what)}</p><p>Open NestDoc &rarr; Credits to add more.</p>`,
+    text: what,
+  });
+}
+
+module.exports = { sendWhatsAppOtp, sendPasswordResetEmail, sendSecurityAlertEmail, sendLowCreditsEmail };

@@ -136,6 +136,14 @@ export const api = {
     run: (type: string, p?: Record<string, any>) =>
       get<any>(`/reports/${type}`, p),
   },
+  credits: {
+    balance: () => get<any>('/credits/balance'),
+    // the list endpoint also returns `total` next to `data`, so it needs the whole response
+    ledger: (page = 1, type = '') =>
+      request<Res<any[]>>(
+        `/credits/ledger?page=${page}${type ? `&type=${type}` : ''}`,
+      ),
+  },
   billing: {
     plans: () => get<any>('/billing/plans'),
     me: () => get<any>('/billing/me'),

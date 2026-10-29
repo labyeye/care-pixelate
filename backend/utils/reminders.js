@@ -31,10 +31,13 @@ async function runOnce() {
       $lte: new Date(Date.now() + 25 * H),
     },
   })
-    .select("_id")
+    .select("_id tenantId")
     .limit(300);
+  const noCredits = new Set(); // clinics out of WhatsApp credits: skipped for the rest of this run, retried next hour
   for (const a of appts) {
+    if (noCredits.has(String(a.tenantId))) continue;
     const r = await notifyAppointment("appointment_reminder", a._id);
+    if (r.code === "NO_CREDITS") noCredits.add(String(a.tenantId));
     if (r.sent) {
       await Appointment.updateOne(
         { _id: a._id },
@@ -51,6 +54,7 @@ async function runOnce() {
     .select("tenantId patientId doctorId followUpOn")
     .limit(300);
   for (const c of cons) {
+    if (noCredits.has(String(c.tenantId))) continue;
     const r = await notifyPatient({
       tenantId: c.tenantId,
       patientId: c.patientId,
@@ -59,6 +63,7 @@ async function runOnce() {
       extra: { date: when(c.followUpOn).date },
       ref: { kind: "consultation", id: c._id },
     });
+    if (r.code === "NO_CREDITS") noCredits.add(String(c.tenantId));
     if (r.sent) {
       await Consultation.updateOne(
         { _id: c._id },

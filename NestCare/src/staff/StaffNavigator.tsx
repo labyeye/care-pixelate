@@ -21,6 +21,7 @@ import Svg, { Path } from 'react-native-svg';
 import {
   Activity,
   BarChart3,
+  Coins,
   FileHeart,
   MessageSquare,
   User as UserIcon,
@@ -63,6 +64,7 @@ import {
   PasswordResetScreen,
   StaffScreen,
 } from './screens/AdminScreens';
+import CreditsScreen from './screens/CreditsScreen';
 import {
   AnalyticsScreen,
   BillingScreen,
@@ -132,6 +134,14 @@ const MENU: {
     label: 'Billing & Plan',
     desc: 'Subscription & usage',
     icon: Wallet,
+    page: 'billing',
+    group: 'Finance',
+  },
+  {
+    route: 'Credits',
+    label: 'WhatsApp Credits',
+    desc: 'Balance & message usage',
+    icon: Coins,
     page: 'billing',
     group: 'Finance',
   },
@@ -401,6 +411,7 @@ export default function StaffNavigator() {
       <Stack.Screen name="Medicines" component={MedicinesScreen} />
       <Stack.Screen name="Vendors" component={VendorsScreen} />
       <Stack.Screen name="Billing" component={BillingScreen} />
+      <Stack.Screen name="Credits" component={CreditsScreen} />
       <Stack.Screen name="Analytics" component={AnalyticsScreen} />
       <Stack.Screen name="Reports" component={ReportsScreen} />
       <Stack.Screen name="Staff" component={StaffScreen} />

@@ -2,7 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/ui/badge";
-import { ApiError, whatsappAPI } from "@/services/api";
+import { useNavigate } from "react-router-dom";
+import { ApiError, creditsAPI, whatsappAPI } from "@/services/api";
+import { fmtCredits, useCredits } from "@/contexts/CreditsContext";
 
 const when = (v: string) =>
   new Date(v).toLocaleString("en-IN", {
@@ -19,6 +21,13 @@ export function WhatsAppSettings() {
   const log = useQuery({
     queryKey: ["whatsapp", "log"],
     queryFn: whatsappAPI.log,
+  });
+  const { credits } = useCredits();
+  const navigate = useNavigate();
+  const est = useQuery({
+    queryKey: ["credits", "estimate"],
+    queryFn: creditsAPI.estimate,
+    enabled: !!credits?.metered,
   });
 
   const save = useMutation({
@@ -41,6 +50,34 @@ export function WhatsAppSettings() {
 
   return (
     <div className="space-y-5">
+      {credits?.metered && (
+        <div
+          className={`space-y-1 border-2 border-black p-3 text-sm ${credits.zero ? "bg-red-50" : "bg-[#F0FFF8]"}`}
+        >
+          <p className="font-medium">
+            WhatsApp credits: {fmtCredits(credits.total)}
+            {credits.zero && " (messages paused)"}
+          </p>
+          <p className="text-xs text-gray-600">
+            Each message costs {credits.rates?.message ?? credits.ratePerMessage} credit
+            (birthday wishes {credits.rates?.birthday ?? 1}). Switch a message off below and it
+            is never sent or charged. Sending stops when credits run out and resumes after a top-up.
+          </p>
+          {est.data && est.data.credits > 0 && (
+            <p className="text-xs text-gray-600">
+              Due in the next day: {est.data.appointmentReminders} appointment reminders and{" "}
+              {est.data.followUpReminders} follow-up reminders, about{" "}
+              <b>{fmtCredits(est.data.credits)}</b> credits.
+            </p>
+          )}
+          <button
+            onClick={() => navigate("/credits")}
+            className="text-xs font-medium text-[#024BAB] hover:underline"
+          >
+            Add credits &amp; see usage
+          </button>
+        </div>
+      )}
       <div
         className={`border-2 p-3 text-sm ${c.connected ? "border-green-700 bg-green-50" : "border-amber-600 bg-amber-50"}`}
       >

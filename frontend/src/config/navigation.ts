@@ -181,6 +181,7 @@ const HREF_PAGE: Record<string, string> = {
   "/staff": "staff",
   "/password-reset": "password-reset",
   "/billing": "billing",
+  "/credits": "billing",
   "/settings": "settings",
 };
 
