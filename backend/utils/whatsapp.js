@@ -10,13 +10,34 @@ const { BY_KEY, params } = require("./whatsappTemplates");
 const credits = require("./credits");
 
 // The Meta call lives behind `driver` so a check can swap it; production uses the defaults below.
+// Same platform number as the login OTP (WHATSAPP_PLATFORM_*), so no extra setup beyond approving the nc_* templates in Meta.
+const WA_API = "https://graph.facebook.com/v20.0";
 const driver = {
-  isConnected: () => false,
-  // eslint-disable-next-line no-unused-vars
+  isConnected: () =>
+    !!(process.env.WHATSAPP_PLATFORM_ACCESS_TOKEN && process.env.WHATSAPP_PLATFORM_PHONE_NUMBER_ID),
   async deliver({ to, template, vars }) {
-    // TODO(whatsapp-api): POST to the provider with { to, template: template.name, language: template.language, params: params(template.key, vars) }
-    // and return { id: <message id> } so the credit charged for it can be tied to the message.
-    throw new Error("WhatsApp API is not connected yet");
+    const res = await fetch(`${WA_API}/${process.env.WHATSAPP_PLATFORM_PHONE_NUMBER_ID}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.WHATSAPP_PLATFORM_ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to,
+        type: "template",
+        template: {
+          name: template.name,
+          language: { code: process.env.WHATSAPP_TEMPLATE_LANG || template.language },
+          components: [
+            { type: "body", parameters: params(template.key, vars).map((text) => ({ type: "text", text })) },
+          ],
+        },
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.error?.message || "WhatsApp API error");
+    return { id: data?.messages?.[0]?.id };
   },
 };
 const isConnected = () => driver.isConnected();
