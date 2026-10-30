@@ -50,17 +50,22 @@ const setAuthCookies = (res, token) => {
   const csrfToken = crypto.randomBytes(24).toString("hex");
   const isProd = process.env.NODE_ENV === "production";
 
+  // COOKIE_DOMAIN=.pixelatenest.com when the web app and the API sit on different subdomains; without it the
+  // csrf cookie belongs to the API host only and the page's JS cannot read it -> "Invalid or missing CSRF token".
+  const domain = process.env.COOKIE_DOMAIN || undefined;
   res.cookie("access_token", token, {
     httpOnly: true,
     secure: isProd,
     sameSite: "lax",
     maxAge: ACCESS_COOKIE_MAX_AGE,
+    domain,
   });
   res.cookie("csrf_token", csrfToken, {
     httpOnly: false,
     secure: isProd,
     sameSite: "lax",
     maxAge: ACCESS_COOKIE_MAX_AGE,
+    domain,
   });
 };
 
@@ -715,8 +720,8 @@ const refresh = asyncHandler(async (req, res) => {
 // @desc    Logout — clear auth cookies
 // @route   POST /api/auth/logout
 const logout = asyncHandler(async (req, res) => {
-  res.clearCookie("access_token");
-  res.clearCookie("csrf_token");
+  res.clearCookie("access_token", { domain: process.env.COOKIE_DOMAIN || undefined });
+  res.clearCookie("csrf_token", { domain: process.env.COOKIE_DOMAIN || undefined });
   res.json({ success: true, data: {} });
 });
 
@@ -773,8 +778,8 @@ const resetPassword = asyncHandler(async (req, res) => {
   user.resetPasswordTokenHash = undefined;
   user.resetPasswordExpires = undefined;
   await user.save();
-  res.clearCookie("access_token");
-  res.clearCookie("csrf_token");
+  res.clearCookie("access_token", { domain: process.env.COOKIE_DOMAIN || undefined });
+  res.clearCookie("csrf_token", { domain: process.env.COOKIE_DOMAIN || undefined });
   res.json({
     success: true,
     data: {},
@@ -1082,8 +1087,8 @@ const changePassword = asyncHandler(async (req, res) => {
 // @route   POST /api/auth/logout-all: signs every device out (this one too)
 const logoutAll = asyncHandler(async (req, res) => {
   await User.updateOne({ _id: req.user._id }, { $inc: { tokenVersion: 1 } });
-  res.clearCookie("access_token");
-  res.clearCookie("csrf_token");
+  res.clearCookie("access_token", { domain: process.env.COOKIE_DOMAIN || undefined });
+  res.clearCookie("csrf_token", { domain: process.env.COOKIE_DOMAIN || undefined });
   res.json({ success: true, data: {} });
 });
 
