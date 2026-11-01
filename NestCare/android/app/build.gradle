@@ -93,6 +93,17 @@ android {
             keyPassword 'android'
         }
     }
+    // Release keystore: set NESTDOC_STORE_FILE/_PASSWORD/_KEY_ALIAS/_KEY_PASSWORD in ~/.gradle/gradle.properties (never commit).
+    if (project.hasProperty('NESTDOC_STORE_FILE')) {
+        signingConfigs {
+            release {
+                storeFile file(NESTDOC_STORE_FILE)
+                storePassword NESTDOC_STORE_PASSWORD
+                keyAlias NESTDOC_KEY_ALIAS
+                keyPassword NESTDOC_KEY_PASSWORD
+            }
+        }
+    }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
@@ -100,7 +111,7 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig project.hasProperty('NESTDOC_STORE_FILE') ? signingConfigs.release : signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

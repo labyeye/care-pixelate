@@ -14,6 +14,11 @@ const audit = require("./middleware/audit");
 
 dotenv.config();
 
+if (process.env.NODE_ENV === "production" && (process.env.JWT_SECRET || "").length < 48) {
+  console.error("JWT_SECRET must be at least 48 characters in production");
+  process.exit(1);
+}
+
 connectDB();
 
 const app = express();
@@ -24,7 +29,8 @@ app.use(require("compression")());
 app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
-    contentSecurityPolicy: false,
+    // JSON API: nothing here should ever render or load anything.
+    contentSecurityPolicy: { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } },
   }),
 );
 

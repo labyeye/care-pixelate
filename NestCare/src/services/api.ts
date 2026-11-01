@@ -3,7 +3,10 @@ import storage from '../utils/storage';
 // Android emulator → host machine's localhost via the 10.0.2.2 loopback alias.
 // iOS simulator shares the Mac's network namespace, so use localhost there instead:
 //   const API_BASE = 'http://localhost:5050/api';
-export const API_BASE = 'http://10.0.2.2:5050/api';
+// Release builds must talk to the production API over HTTPS. TODO: set the real domain.
+export const API_BASE = __DEV__
+  ? 'http://10.0.2.2:5050/api'
+  : 'https://api.nestdoc.pixelatenest.com/api';
 
 export class ApiError extends Error {
   status: number;
