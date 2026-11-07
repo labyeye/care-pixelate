@@ -7,6 +7,8 @@
 // Every event also stores the caller's IP, IP-derived location + ISP, and browser / OS / device, so the
 // dashboard can slice by any combination (country, city, browser, tenant, user, ...).
 const crypto = require("crypto");
+const os = require("os");
+const fs = require("fs");
 const express = require("express");
 const mongoose = require("mongoose");
 
@@ -15,7 +17,7 @@ const TYPES = ["page", "crash", "error"];
 const DAY = 86400000;
 const RANGES = { "1h": 3600000, "24h": DAY, "7d": 7 * DAY, "30d": 30 * DAY };
 // Fields the dashboard can filter on and get a breakdown for.
-const DIMS = ["country", "region", "city", "isp", "browser", "os", "device", "ip", "tenantId", "userId", "role", "version", "path"];
+const DIMS = ["country", "region", "city", "isp", "browser", "os", "device", "ip", "tenantName", "tenantId", "userName", "userId", "role", "version", "path"];
 const FILTERS = [...DIMS, "type"];
 
 const eventSchema = new mongoose.Schema({
@@ -25,6 +27,9 @@ const eventSchema = new mongoose.Schema({
   path: String,
   userId: String,
   tenantId: String,
+  tenantName: String,
+  userName: String,
+  userEmail: String,
   role: String,
   message: String,
   stack: String,
@@ -96,6 +101,60 @@ const geoFor = async (ip) => {
   return g;
 };
 
+// ── Process / host runtime stats ────────────────────────────────────────────
+let lagMs = 0;
+let lastTick = Date.now();
+setInterval(() => {
+  const t = Date.now();
+  lagMs = Math.max(0, t - lastTick - 1000);
+  lastTick = t;
+}, 1000).unref();
+let cpuPrev = process.cpuUsage();
+let cpuT = Date.now();
+let cpuPct = 0;
+setInterval(() => {
+  const t = Date.now();
+  const u = process.cpuUsage(cpuPrev);
+  cpuPct = Math.round(((u.user + u.system) / 1000 / (t - cpuT)) * 1000) / 10;
+  cpuPrev = process.cpuUsage();
+  cpuT = t;
+}, 5000).unref();
+const mb = (b) => Math.round((b / 1048576) * 10) / 10;
+const serverStats = async () => {
+  const m = process.memoryUsage();
+  const conn = mongoose.connection;
+  let disk = null;
+  try {
+    const d = fs.statfsSync("/");
+    disk = { totalGb: Math.round((d.blocks * d.bsize) / 1e8) / 10, freeGb: Math.round((d.bavail * d.bsize) / 1e8) / 10 };
+  } catch (e) {
+    /* statfs is Linux/Node 18.15+ */
+  }
+  let db = null;
+  try {
+    const st = await conn.db.stats();
+    db = { name: st.db, collections: st.collections, documents: st.objects, dataMb: mb(st.dataSize), storageMb: mb(st.storageSize), indexMb: mb(st.indexSize) };
+  } catch (e) {
+    /* the db user may not be allowed dbStats */
+  }
+  return {
+    host: os.hostname(),
+    platform: `${os.type()} ${os.release()}`,
+    node: process.version,
+    pid: process.pid,
+    env: process.env.NODE_ENV || "—",
+    processUptimeSec: Math.round(process.uptime()),
+    hostUptimeSec: Math.round(os.uptime()),
+    cpuCores: os.cpus().length,
+    cpuProcessPct: cpuPct,
+    loadAvg: os.loadavg().map((x) => Math.round(x * 100) / 100),
+    eventLoopLagMs: lagMs,
+    memory: { rssMb: mb(m.rss), heapUsedMb: mb(m.heapUsed), heapTotalMb: mb(m.heapTotal), systemTotalMb: mb(os.totalmem()), systemFreeMb: mb(os.freemem()) },
+    disk,
+    mongo: { state: ["disconnected", "connected", "connecting", "disconnecting"][conn.readyState] || "unknown", db },
+  };
+};
+
 module.exports = (secretEnv) => {
   const guard = (req, res, next) => {
     const secret = process.env[secretEnv] || "";
@@ -149,6 +208,39 @@ module.exports = (secretEnv) => {
     next();
   };
 
+  // Fill person name/email/company on events from the product's own User (+ Company/Tenant) model, once per user.
+  // The client only sends an id; this makes "which person" readable. Best effort: field names differ per product.
+  const who = new Map(); // userId -> [info|null, expiresAt]
+  const enrich = async (userIds, eventIds) => {
+    const User = mongoose.models.User;
+    const Org = mongoose.models.Tenant || mongoose.models.Company;
+    if (!User) return;
+    for (const uid of userIds) {
+      try {
+        let hit = who.get(uid);
+        if (!hit || hit[1] < Date.now()) {
+          const u = await User.findById(uid).select("name email tenantId company").lean();
+          let info = null;
+          if (u) {
+            const org = u.tenantId || u.company;
+            let orgName;
+            if (org && Org) {
+              const o = await Org.findById(org).select("name companyName businessName").lean();
+              orgName = o && (o.name || o.companyName || o.businessName);
+            }
+            info = { userName: u.name, userEmail: u.email, ...(org ? { tenantId: String(org) } : {}), ...(orgName ? { tenantName: orgName } : {}) };
+          }
+          if (who.size > 5000) who.clear();
+          hit = [info, Date.now() + (info ? 6 * 3600000 : 600000)];
+          who.set(uid, hit);
+        }
+        if (hit[0]) await Event.updateMany({ _id: { $in: eventIds }, userId: uid }, { $set: hit[0] });
+      } catch (e) {
+        /* invalid id or lookup failed: leave the event as is */
+      }
+    }
+  };
+
   // ── Ingest: POST /api/telemetry { events: [...] } ───────────────────────────
   const hits = new Map(); // ip -> [count, windowStart]; ponytail: per-process, fine for one node
   const ingest = express.Router();
@@ -178,8 +270,11 @@ module.exports = (secretEnv) => {
       }));
     const saved = docs.length ? await Event.insertMany(docs, { ordered: false }).catch(() => []) : [];
     res.json({ success: true });
-    if (saved.length)
-      geoFor(ip).then((g) => g && Event.updateMany({ _id: { $in: saved.map((d) => d._id) } }, { $set: g }).catch(() => {}));
+    if (saved.length) {
+      const ids = saved.map((d) => d._id);
+      geoFor(ip).then((g) => g && Event.updateMany({ _id: { $in: ids } }, { $set: g }).catch(() => {}));
+      enrich([...new Set(saved.map((d) => d.userId).filter(Boolean))], ids);
+    }
   });
 
   // ── Read: GET /api/crm/metrics?platform=web|app&range=1h|24h|7d|30d&<any filter>=value ──────────
@@ -209,6 +304,32 @@ module.exports = (secretEnv) => {
           { $sort: { events: -1 } },
           { $limit: 15 },
         ];
+      const liveMin = [5, 10, 15, 30, 60].includes(+req.query.liveMin) ? +req.query.liveMin : 10;
+      const [live, server, series] = await Promise.all([
+        Event.aggregate([
+          { $match: { ...base, type: "page", ts: { $gte: since(liveMin * 60000) } } },
+          { $sort: { ts: -1 } },
+          { $group: { _id: { $ifNull: ["$userId", "$ip"] }, last: { $first: "$$ROOT" }, since: { $min: "$ts" }, pages: { $sum: 1 } } },
+          { $sort: { "last.ts": -1 } },
+          { $limit: 500 },
+        ]),
+        serverStats(),
+        Minute.find({ platform, minute: { $gte: since(3600000) } }).sort({ minute: 1 }).select("minute n c5 ms -_id").lean(),
+      ]);
+      const online = live.map((r) => ({
+        who: r.last.userName || r.last.userEmail || r.last.userId || "Anonymous visitor",
+        userId: r.last.userId, email: r.last.userEmail, role: r.last.role, company: r.last.tenantName || r.last.tenantId,
+        screen: r.last.path, lastSeen: r.last.ts, since: r.since, pagesViewed: r.pages,
+        ip: r.last.ip, city: r.last.city, region: r.last.region, country: r.last.country, isp: r.last.isp,
+        lat: r.last.lat, lon: r.last.lon, browser: r.last.browser, os: r.last.os, device: r.last.device, version: r.last.version,
+      }));
+      const screens = new Map();
+      for (const o of online) {
+        const e = screens.get(o.screen) || { screen: o.screen, people: 0, names: [] };
+        e.people++;
+        if (e.names.length < 8) e.names.push(o.who);
+        screens.set(o.screen, e);
+      }
       const [activeNow, active24h, active7d, active30d, totalUsers, topPages, hourly, crashes, crashCount, api, fac, events] = await Promise.all([
         distinctUsers(5 * 60000),
         distinctUsers(DAY),
@@ -259,6 +380,9 @@ module.exports = (secretEnv) => {
         crashes: { last24h: crashCount, recent: crashes },
         breakdowns,
         events,
+        live: { windowMin: liveMin, total: online.length, byScreen: [...screens.values()].sort((a, b) => b.people - a.people), online },
+        server,
+        apiSeries: series.map((m) => ({ minute: m.minute, requests: m.n, errors5xx: m.c5, avgMs: m.n ? Math.round(m.ms / m.n) : 0 })),
         api: {
           requests24h: a.n,
           successRate: a.n ? Math.round((a.ok / a.n) * 1000) / 10 : null,
